@@ -2754,12 +2754,15 @@ window.ROUTINE_DATA = {
 
   /* ---------- 내추럴 호른: 크룩별 배음, 손 막음 이웃음, 손 음계, 크룩 바꿔 읽기 ---------- */
   // 크룩: 기보(C)에서 실음까지 내려가는 반음 수. C는 C basso, A는 A alto(본인 확인)
+  var CMAX = { G: 79, A: 76 }; // 파샬 상한(G는 12번, A는 10번까지). 한 곳 출처(Wikipedia 표). 확인 필요
+  var CNAME = { C: "C basso", A: "A alto", H: "H basso", Bb: "B♭", "Bb basso": "B♭ basso", Eb: "E♭" };
+  var NATORD = ["Eb", "E", "F", "D", "G", "A", "C", "Bb basso", "H"]; // Domnich: Eb부터 시작, 다음 E와 F. Dauprat: D, Eb, E, F, G 다섯 개. 나머지 크룩은 뒤(근거는 한 곳)
   var CROOKS = [["C", 12], ["D", 10], ["Eb", 9], ["E", 8], ["F", 7], ["G", 5], ["A", 3], ["Bb basso", 14], ["H", 13]];
   var NOPEN = [48, 55, 60, 64, 67, 70, 72, 74, 76, 77, 79, 81, 82, 83, 84]; // 2~16배음 기보(7, 11, 13배음은 근사)
   function crookT(c) { var x = CROOKS.filter(function (k) { return k[0] === c; })[0]; return x ? x[1] : 7; }
   function natMark(m) { return NOPEN.indexOf(m) >= 0 ? [] : ["!+!"]; }
   function natMk(title, kind, cat, tempo, evs, o, extra) {
-    var r = mk(title + " (in " + String(o.crook).replace(/^([A-G])b/, "$1♭") + ")", kind, cat, kind, tempo, evs, { unitDen: o.unitDen || 4 }, Object.assign({ idea: "내추럴 호른" }, extra || {}));
+    var r = mk(title + " (in " + (CNAME[o.crook] || String(o.crook).replace(/^([A-G])b/, "$1♭")) + ")", kind, cat, kind, tempo, evs, { unitDen: o.unitDen || 4 }, Object.assign({ idea: "내추럴 호른" }, extra || {}));
     var hand = evs.filter(function (e) { return e.p && (e.deco || []).indexOf("!+!") >= 0; }).length;
     if (hand) { r.levelWhy = r.levelWhy.concat(["손 음 " + hand + "개"]); if (hand >= 4 && r.level < 5) r.level++; }
     r.transpose = crookT(o.crook); r.crook = o.crook; r.natural = true;
@@ -2775,7 +2778,7 @@ window.ROUTINE_DATA = {
       return natMk("배음 " + hs.length + "개", "natHarm", "하모닉 슬러", o.tempo || 66, evs, o);
     },
     neighbor: function (o) {
-      var pairs = [[72, 71], [67, 66], [64, 63], [74, 73], [76, 75], [79, 78], [60, 59], [70, 69]].filter(function (p) { return p[1] >= o.lo && p[0] <= o.hi; }).slice(0, o.n || 6), evs = [];
+      var pairs = [[72, 71], [67, 66], [64, 63], [74, 73], [76, 75], [79, 78], [60, 59], [70, 69]].filter(function (p) { return p[1] >= o.lo && p[0] <= o.hi && !(/^(C|Bb basso|H)$/.test(o.crook) && p[0] <= 64); }).slice(0, Math.min(o.n || 6, 5)), evs = [];
       pairs.forEach(function (p, i) {
         evs.push({ p: spell(p[0]), u: 2, deco: ["!open!"], open: true, txt: i === 0 ? "열림, 손, 열림" : "" });
         evs.push({ p: spell(p[1], "sharp"), u: 2, deco: ["!+!"] });
@@ -2804,10 +2807,69 @@ window.ROUTINE_DATA = {
       ms.forEach(function (m, i) { evs.push({ p: spell(m), u: 4, deco: i === 0 ? ["!pp!", "!>(!"] : [], txt: i === 0 ? "열린 음만, 숨을 다 쓰며 작게" : "" }); evs.push({ rest: true, u: 4 }); });
       return natMk("열린 음 웜다운 아래로", "natDown", "웜다운", o.tempo || 56, evs, o);
     },
+    // 연습법 문헌 조사(natres) 반영. 근거 수준은 idea 칸에 적음. 막음 정도별 음정 변화와 음별 정도값은 원전 도표를 못 열어 만들지 않음(확인 필요)
+    pair: function (o) {
+      var P = [[60, 64, "4-5"], [64, 67, "5-6"], [67, 70, "6-7"]].filter(function (p) { return p[0] >= o.lo && p[1] <= o.hi; }).slice(0, o.n || 3), evs = [];
+      P.forEach(function (p, i) { for (var k = 0; k < 4; k++) evs.push({ p: spell(p[k % 2 ? 1 : 0], "flat"), u: 1, open: k === 0, close: k === 3, txt: k === 0 ? p[2] + "번 배음, 열린 음만" : "" }); evs.push({ p: spell(p[0], "flat"), u: 2 }); evs.push({ rest: true, u: 2 }); });
+      return natMk("인접 배음 두 음 왕복 " + P.length + "쌍", "natHarm", "하모닉 슬러", o.tempo || 66, evs, o, { idea: "Agrell 배음열 연습. 한 곳 출처", why: "열린 음만. 느린 속도에서 시작해 점차 빠르게(출처). 음 사이는 손 없이 입술로 넘기기(앱 코칭)" });
+    },
+    three: function (o) {
+      var T3 = [[60, 64, 60], [64, 67, 64], [60, 64, 67]], evs = [];
+      T3.concat(o.more ? [[60, 64, 60], [64, 67, 64]] : []).forEach(function (t, i) { t.forEach(function (m, k) { evs.push({ p: spell(m, "flat"), u: 1, open: k === 0, close: k === 2, txt: i === 0 && k === 0 ? "4-5-6번 배음" : "" }); }); evs.push({ rest: true, u: 1 }); });
+      if (o.more) [60, 64, 60, 64, 67, 64, 67, 64].forEach(function (m, k) { evs.push({ p: spell(m, "flat"), u: 1, open: k === 0, close: k === 7, txt: k === 0 ? "4545 6565 변형" : "" }); });
+      return natMk("인접 배음 세 음 패턴", "natHarm", "하모닉 슬러", o.tempo || 66, evs, o, { idea: "Agrell 배음열 연습. 한 곳 출처", why: "열린 음만. 느린 속도에서 시작(출처). 숨을 끊지 않고 이어 불기(앱 코칭)" });
+    },
+    leaps: function (o) {
+      var L = [[60, 67], [67, 72], [67, 74], [72, 76]], evs = [];
+      var LN = { 60: "4", 67: "6", 72: "8", 74: "9", 76: "10" }, LF = L.filter(function (p) { return p[0] >= o.lo && p[1] <= o.hi; });
+      LF.forEach(function (p, i) { evs.push({ p: spell(p[0], "flat"), u: 2, open: true, txt: i === 0 ? LF.map(function (q) { return LN[q[0]] + "-" + LN[q[1]]; }).join(", ") + "번 배음" : "" }); evs.push({ p: spell(p[1], "flat"), u: 2, close: true }); evs.push({ p: spell(p[0], "flat"), u: 2 }); evs.push({ rest: true, u: 2 }); });
+      if (!evs.length) evs.push({ p: spell(60, "flat"), u: 4 }, { p: spell(67, "flat"), u: 4 });
+      return natMk("도약 배음 왕복", "natHarm", "하모닉 슬러", o.tempo || 60, evs, o, { idea: "Agrell 배음열 연습. 한 곳 출처", why: "열린 음만(출처). 도약 뒤에도 음색이 같은지 듣기(앱 코칭)" });
+    },
+    downone: function (o) {
+      var PN = { 3: 55, 4: 60, 5: 64, 6: 67, 7: 70, 8: 72, 9: 74, 10: 76 }, base = [4, 3, 4, 5, 4, 5, 6, 5, 6, 7, 6, 7, 8], sh = 0, evs = [];
+      while (sh < 3 && !base.every(function (n) { return PN[n + sh] && PN[n + sh] >= o.lo && PN[n + sh] <= o.hi; })) sh++;
+      if (sh >= 3) { base = base.slice(0, 7); sh = 0; }
+      base.forEach(function (n, i) { var m = PN[n + sh]; if (m == null) return; evs.push({ p: spell(m, "flat"), u: 1, open: i === 0, close: i === base.length - 1, txt: i === 0 ? "한 음 내려갔다 돌아오기" : "" }); });
+      while (evs.length % 4) evs.push({ rest: true, u: 1 });
+      return natMk("배음 올라가며 한 음씩 되돌아오기", "natHarm", "하모닉 슬러", o.tempo || 66, evs, o, { idea: "Agrell 배음열 연습. 한 곳 출처", why: "열린 음만. 7번 배음(B♭)은 낮게 나오는 음이라 손을 조금 열고 입술로 맞추기" });
+    },
+    oct: function (o) {
+      var a = 60, b = 72; if (b > o.hi) b = 67; var oc = b === 72 ? "4번에서 8번" : "4번에서 6번";
+      var evs = [{ p: spell(a, "flat"), u: 4, open: true, txt: "글리산도로 이어서" }, { p: spell(b, "flat"), u: 4, close: true }, { p: spell(a, "flat"), u: 4 }, { rest: true, u: 4 }];
+      return natMk("배음 사이 글리산도", "natHarm", "하모닉 슬러", o.tempo || 56, evs, o, { idea: "Agrell 배음열 연습. 한 곳 출처", why: oc + " 배음까지 열린 음만. 미끄러지듯 올라가기(출처). 도착음이 정확한지 듣기(앱 코칭)" });
+    },
+    pcheck: function (o) {
+      var ms = [[70, "7"], [77, "11"], [81, "13"]].filter(function (p) { return p[0] <= o.hi; }), evs = [];
+      ms.forEach(function (p, i) { evs.push({ p: spell(p[0], "flat"), u: 4, open: true, deco: ["!open!"], txt: p[1] + "번 배음" + (p[1] === "11" ? "(높은 쪽, 확인 필요)" : "") + ", 드론 위에서 확인" }); evs.push({ rest: true, u: 4 }); });
+      if (!evs.length) evs.push({ p: spell(70, "flat"), u: 4 }, { rest: true, u: 4 });
+      return natMk("어긋나기 쉬운 배음 음정 확인", "natHarm", "하모닉 슬러", o.tempo || 56, evs, o, { idea: "오른손 주법 조사. 7번과 13번 배음은 두 곳 출처. 11번 처리는 자료가 갈려 확인 필요", why: "7번과 13번 배음은 낮게 나옴. 13번은 닫아서 못 고치니 완전히 열고, 짧은 크룩(G, A 등)에서는 슬라이드를 더 넣어 보기" });
+    },
+    degrees: function (o) {
+      var D = [["0", 0], ["1/4", 0], ["1/2", 0], ["3/4", 0], ["1", 1]], evs = [];
+      D.forEach(function (d, i) { evs.push({ p: spell(67, "sharp"), u: 2, deco: (d[1] ? ["!+!"] : []).concat(i === 0 ? ["!open!"] : []), open: i === 0, close: i === 4, txt: "막음 " + d[0] }); evs.push({ rest: true, u: 2 }); });
+      D.slice(0, 4).reverse().forEach(function (d, i) { evs.push({ p: spell(67, "sharp"), u: 2, deco: i === 3 ? ["!open!"] : [], txt: (i === 0 ? "다시 열기 " : "") + "막음 " + d[0] }); evs.push({ rest: true, u: 2 }); });
+      return natMk("막음 정도 단계 나누기", "natHand", "핸드 스톱", o.tempo || 52, evs, o, { idea: "Dauprat 한 저작(번역 발췌)이 0, 1/4, 1/2, 3/4, 1을 씀. Orval은 이를 부정확하다 하고 Boldin은 두 위치만, Matosinhos는 1/2과 3/4만 씀. 1/4의 뜻과 단계별 하강량은 확인 필요", why: "같은 음에서 손만 닫았다 열기. 막음 정도는 숫자 없이 귀로 판단(Ericson 한 글). 단계마다 음높이를 확인하고 입술로 같은 높이에 맞추기(앱 코칭)" });
+    },
+    echo: function (o) {
+      var P = [[72, 71], [67, 66], [64, 63]].filter(function (p) { return p[1] >= o.lo && p[0] <= o.hi && !(/^(C|Bb basso|H)$/.test(o.crook) && p[0] <= 64); }).slice(0, o.n || 2), evs = [];
+      P.forEach(function (p, i) { evs.push({ p: spell(p[0], "sharp"), u: 2, open: true, deco: ["!open!", "!mp!"], txt: i === 0 ? "열린 음" : "" }); evs.push({ p: spell(p[1], "sharp"), u: 2, deco: ["!pp!"], txt: i === 0 ? "거의 막음, 에코 음색" : "", close: true }); evs.push({ p: spell(p[0], "sharp"), u: 2, deco: ["!mp!"] }); evs.push({ rest: true, u: 2 }); });
+      if (!evs.length) evs.push({ p: spell(72, "sharp"), u: 4 }, { rest: true, u: 4 });
+      return natMk("반 막음 에코 음색", "natHand", "핸드 스톱", o.tempo || 52, evs, o, { idea: "반음 위 배음을 잡는 방법은 Ericson 한 글. 음색(먹먹하고 먼 소리)은 Matosinhos와 Hill 요약. 단계별 하강량은 확인 필요", why: "목표음보다 반음 위 배음을 잡고 벨을 거의 막아 내리기. 소리는 먹먹하고 먼 느낌으로, 완전 막음의 코맹맹이 소리와 구분" });
+    },
+    shape: function (o) {
+      var evs = [];
+      for (var k = 0; k < 4; k++) { evs.push({ p: spell(67, "sharp"), u: 2, open: k === 0, close: k === 3, deco: ["!open!"], txt: k === 0 ? "열림" : "" }); evs.push({ p: spell(67, "sharp"), u: 2, deco: ["!+!"], txt: k === 0 ? "완전 막음" : "" }); }
+      return natMk("열림과 완전 막음 교대", "natHand", "핸드 스톱", o.tempo || 60, evs, o, { idea: "손 자세 조사. 두 곳 출처", why: "손은 문처럼 여닫기. 밀어 넣지 않기. 엄지는 검지에 붙이기. 열린 음과 막은 음의 음색 차이를 줄이기. 손바닥을 벨 목 안쪽에 대면 음이 나빠진다는 서술은 한 글(Ericson 2002, 모던 호른)" });
+    },
+    gradual: function (o) {
+      var evs = [{ p: spell(72, "sharp"), u: 4, open: true, deco: ["!open!"], txt: "손을 서서히 닫기" }, { p: spell(71, "sharp"), u: 4, deco: ["!+!"], close: true }, { rest: true, u: 4 }, { p: spell(72, "sharp"), u: 4 }];
+      return natMk("손을 서서히 닫아 음 내리기", "natHand", "핸드 스톱", o.tempo || 52, evs, o, { idea: "오른손 주법 조사. 세 곳 출처", why: "열린 음에서 시작해 손만 닫아 아래 음 쪽으로 내리기. 서서히 닫으면 약 반음, 완전히 막고 입술로 보정하면 아래 배음의 반음 위까지 내려감" });
+    },
     tune: function (o) {
       // 직접 지은 짧은 선율: 열린 음 위주, 손 음 몇 개
       var mel = [[67, 2], [72, 1], [71, 1], [72, 2], [76, 2], [74, 1], [72, 1], [71, 1], [69, 1], [67, 4], [64, 2], [67, 1], [66, 1], [67, 2], [72, 2], [74, 1], [76, 1], [74, 1], [71, 1], [72, 4]], evs = [];
-      mel.forEach(function (x, i) { evs.push({ p: spell(x[0], "sharp"), u: x[1], deco: natMark(x[0]), open: i === 0 || i === 10, close: i === 9 || i === mel.length - 1 }); });
+      mel.forEach(function (x, i) { var mm = x[0] > o.hi ? x[0] - 12 : x[0]; evs.push({ p: spell(mm, "sharp"), u: x[1], deco: natMark(mm), open: i === 0 || i === 10, close: i === 9 || i === mel.length - 1 }); });
       return natMk("크룩 읽기 선율", "natTune", "선율", o.tempo || 72, evs, o);
     }
   };
@@ -3042,6 +3104,7 @@ window.ROUTINE_DATA = {
     if (pain && pain.length) { effP = "회복"; reasons.push({ k: "몸 상태", t: hurt ? "오늘 " + pain.join(", ") + " 기록. 불지 않는 것이 기본. 불면 10분, C5 아래, mf 아래로" : "오늘 " + pain.join(", ") + " 기록. 고음, 큰 소리, 곡 구간 빼고 작고 낮은 회복 세트. 이어지면 진료 받기" }); }
     var puE = PURPOSE[effP] || pu0;
     var pu = { rest: puE.rest + (eased ? 0.05 : 0), band: [Math.max(1, Math.min(5, puE.band[0] + dif)), Math.max(1, Math.min(5, puE.band[1] + dif))], focus: (puE.focus || []).slice(), blocks: puE.blocks.map(function (b) { return b.slice(); }) };
+    var NPOOL = nat ? (pu.band[1] <= 2 ? NATORD.slice(0, 5) : NATORD) : null, natCr = nat ? (o.crook || NPOOL[day % NPOOL.length]) : ""; // 내추럴 호른 크룩: Domnich Eb부터, 쉬운 날은 앞 다섯 개(Dauprat 다섯 크룩)만
     if (hurt) { pu.blocks = pu.blocks.filter(function (b) { return ["longtone", "melody", "warmdown"].indexOf(b[0]) >= 0; }); pu.band = [1, 1]; cHi = Math.min(cHi, 72); }
     var adj = {};
     function note(k, s) { (adj[k] = adj[k] || []).push(s); }
@@ -3212,7 +3275,8 @@ window.ROUTINE_DATA = {
         return t;
       }
       var top = band[1], VS = ["0", "2", "1", "12", "23", "13", "123"];
-      var cr = o.crook || CROOKS[day % CROOKS.length][0], no = { lo: lo, hi: hi, crook: cr };
+      var cr = nat ? natCr : (o.crook || CROOKS[day % CROOKS.length][0]);
+      var noFor = function (c) { return { lo: lo, hi: Math.min(nat ? Math.min(hi, 79) : hi, CMAX[c] || 999), crook: c }; }, no = noFor(cr);
       if (useKey) {
         var kinds0 = list.map(function (x) { return x[0]; }), kc = { key: KEY.key, fOnly: !!o.fOnly, lo: lo, hi: hi, flo: cLo, fhi: cHi, level: top, T: T, tpl: KD.tplOf(pu.band[1], day), shape: shp0, day: day, rot: (o.seed || 0) + (o.reroll || 0), hasArtic: kinds0.indexOf("artic") >= 0, hasAttack: kinds0.indexOf("attack") >= 0 };
         if (kind === "longtone" && (tg.notes.length || tg.regs.length || tg.dyn)) {
@@ -3260,10 +3324,16 @@ window.ROUTINE_DATA = {
         if (kind === "melody" && !items.length) add({ ref: "ex:melody", title: "짧은 선율", tempo: 66, level: 1, sec: 30, why: "" });
       }
       else if (nat && kind === "longtone") fill([NAT.long(no)]);
-      else if (nat && kind === "flex") fill([NAT.harm(Object.assign({ maxH: top <= 2 ? 4 : top === 3 ? 6 : 9 }, no)), NAT.harm(Object.assign({}, no, { crook: CROOKS[(day + 3) % CROOKS.length][0], maxH: top <= 2 ? 4 : 6 }))]);
-      else if (nat && kind === "hand") fill([NAT.neighbor(Object.assign({ n: top <= 2 ? 3 : top === 3 ? 5 : 8 }, no))]);
+      else if (nat && kind === "flex") {
+        var FV = top <= 2 ? ["pair", "three", "downone"] : top === 3 ? ["three", "downone", "leaps", "pcheck", "oct"] : ["leaps", "oct", "downone", "pcheck", "three"];
+        fill([NAT.harm(Object.assign({ maxH: top <= 2 ? 4 : top === 3 ? 6 : 9 }, no)), NAT[FV[day % FV.length]](Object.assign({ more: top >= 3 }, noFor(o.crook || NPOOL[(day + 3) % NPOOL.length]))), NAT[FV[(day + 2) % FV.length]](Object.assign({ more: top >= 4 }, no))]);
+      }
+      else if (nat && kind === "hand") {
+        var HV = top <= 2 ? ["shape", "gradual", "degrees"] : ["degrees", "echo", "gradual", "shape"];
+        fill([NAT.neighbor(Object.assign({ n: top <= 2 ? 3 : top === 3 ? 5 : 8 }, no)), NAT[HV[day % HV.length]](no), NAT[HV[(day + 1) % HV.length]](no)]);
+      }
       else if (nat && kind === "scale") fill([NAT.scale(Object.assign({ oct: top >= 4 && hi >= 84 ? 2 : 1 }, no))]);
-      else if (nat && kind === "melody") fill([NAT.tune(no), NAT.tune(Object.assign({}, no, { crook: CROOKS[(day + 5) % CROOKS.length][0] }))]);
+      else if (nat && kind === "melody") fill([NAT.tune(no), NAT.tune(noFor(o.crook || NPOOL[(day + 5) % NPOOL.length]))]);
       else if (kind === "breath") add({ ref: "ex:breath", title: "호흡", tempo: 60, level: 1, sec: Math.round(play), why: "몸과 숨을 먼저 풀어 첫 진동을 편하게" });
       else if (kind === "buzz") fill([G.HornStudies ? W2(G.HornStudies.buzzing({ lo: lo, hi: hi, level: top }), "같은 음형을 마우스피스로 먼저, 다음 호른으로. 음높이가 같은지 듣기") : null, W2(W.lmh({ lo: lo, hi: hi, regs: top <= 2 ? 2 : 3 }), "입술, 마우스피스, 호른이 같은 음높이인지")]);
       else if (nat && kind === "warmdown") fill([NAT.down(no)]);
@@ -3405,7 +3475,7 @@ window.ROUTINE_DATA = {
     var libA = 0, libB = 0; blocks.forEach(function (bk) { if (bk.kind === "warmup") return; bk.items.forEach(function (x) { var s2 = (x.sec || 0) * (x.reps || 1); libB += s2; if (x.ref && x.ref.indexOf("lib:") === 0) libA += s2; }); });
     
     // 합계와 목표는 근거 상자 아래 한 줄에만(같은 말 두 번 금지)
-    return { crook: nat ? (o.crook || CROOKS[day % CROOKS.length][0]) : "", key: KEY ? KEY.key : "", keyWhy: KEY ? KEY.why : "", date: o.date, minutes: T, purpose: o.purpose, effPurpose: effP, reroll: o.reroll || 0, lo: cLo, hi: cHi, blocks: blocks, reasons: reasons, focus: pu.focus, weakTargets: tg, targetSec: target, totalSec: totalSec, v: 4, hrm: HR && G.HornHRM ? G.HornHRM.brief(HR) : null,
+    return { crook: natCr, key: KEY ? KEY.key : "", keyWhy: KEY ? KEY.why : "", date: o.date, minutes: T, purpose: o.purpose, effPurpose: effP, reroll: o.reroll || 0, lo: cLo, hi: cHi, blocks: blocks, reasons: reasons, focus: pu.focus, weakTargets: tg, targetSec: target, totalSec: totalSec, v: 4, hrm: HR && G.HornHRM ? G.HornHRM.brief(HR) : null,
       kop: PD && PD.kop ? PD.kop : null, plan: PD ? { dow: PD.dow, dowName: PD.dowName, focus: PD.focus, sources: PD.sources, mode: PD.mode, why: PD.why, minutesHint: PD.minutesHint, concert: PD.concert ? { title: PD.concert.c.short, dtc: PD.concert.dtc, share: PD.piece ? PD.piece.share : 0, tempo: PD.piece ? PD.piece.tempo : 0, prep: !!PD.concert.prep } : null } : null, libShare: libB ? libA / libB : 0, blockCap: cap, ltTarget: ltTarget(effP) };
   }
 
