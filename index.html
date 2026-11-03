@@ -13574,14 +13574,14 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     return w;
   }
   function renderLanding() {
-    if (bodyAsked() || U.mode !== "setup" || document.getElementById("landing")) return;
+    if (window.__landed || U.mode !== "setup" || document.getElementById("landing")) return;
     if (window.__seed && !window.__landingTest) return; // 시험 페이지는 시작 화면을 건너뜀(tland.js만 봄)
-    var G = window.__prog; if (!G || !G.logPain) return;
+    var G = window.__prog; if (!G || !G.logPain) return; window.__landed = true; var again = bodyAsked();
     var d = new Date(), WD = ["일", "월", "화", "수", "목", "금", "토"], L = el("section", "landing"); L.id = "landing"; L.setAttribute("aria-label", "오늘 상태");
     L.appendChild(el("p", "ld-date", (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + WD[d.getDay()] + "요일"));
     L.appendChild(el("h1", "ld-q", "오늘 입술은 어때요?"));
     L.appendChild(bodyList(false, function () { L.classList.add("out"); setTimeout(function () { L.remove(); document.body.classList.remove("has-landing"); bodyRegen(); }, 180); }));
-    var sk = el("button", "ld-skip", "건너뛰기"); sk.type = "button"; sk.addEventListener("click", function () { bodyMark(); L.remove(); document.body.classList.remove("has-landing"); renderBody(); }); L.appendChild(sk);
+    var sk = el("button", "ld-skip", again ? "그대로 시작" : "건너뛰기"); sk.type = "button"; sk.addEventListener("click", function () { bodyMark(); L.remove(); document.body.classList.remove("has-landing"); renderBody(); }); L.appendChild(sk);
     document.body.appendChild(L); document.body.classList.add("has-landing");
   }
   function renderBody() {
