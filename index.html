@@ -14008,7 +14008,40 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
       if (t === "바그너 튜바") box.appendChild(el("p", "meta", "엑섭은 바그너 튜바 악보만 씀. 지금 앱에는 바그너 튜바 엑섭 악보가 없음"));
       var ok = !!t && !(t === "내추럴" && !D.crooks.length) && !(t === "싱글" && !D.key) && !(t === "바그너 튜바" && (!D.sub || !D.key)); var go = $("#instGo"); if (go) { go.disabled = !ok; }
     }
-    window.__sheet.open({ title: "무슨 악기로 연습하십니까", body: box, actions: [{ label: "연습 시작", id: "instGo", onClick: function (b) { if (b && b.disabled) return; instApply(D); busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); } }, { label: "취소" }] });
+    function go() { busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); }
+    // 2단계: 연습 설계에 꼭 필요한데 아직 안 정한 것만 묻는다(오늘 입술, 편한 음역, 날짜 미확인 공연). 다 정했으면 건너뜀
+    function pend() {
+      if (window.__seed && !window.__landingTest) return { body: false, range: false, conc: [], empty: false }; // 시험 페이지는 건너뜀(tflow.js만 봄)
+      var rg = false; try { rg = !!localStorage.getItem("horn-proto-range"); } catch (e) {}
+      var P = window.__prog && window.__prog.P, empty = !!P && P.ready !== false && !(P.drills || []).length && !(P.takes || []).length;
+      var seen = false; try { seen = localStorage.getItem("horn-proto-flow2") === "1"; } catch (e) {} // 공연 날짜와 기록 안내는 한 번만 물음
+      if (seen) empty = false;
+      return { body: !bodyAsked(), range: !rg, conc: seen ? [] : (U.concerts || []).map(function (c, i) { return [c, i]; }).filter(function (x) { return !x[0].confirmed && x[0].date && x[0].date >= today(); }), empty: empty };
+    }
+    function step2() {
+      var Q = pend(), rangeOk = !Q.range, box2 = el("div", "inst-box");
+      function sec(t) { var w = el("div", "inst-row"); w.appendChild(el("p", "meta", t)); box2.appendChild(w); return w; }
+      function chk() { var g = $("#instGo2"); if (g) g.disabled = !(bodyAsked() && rangeOk); }
+      if (Q.empty) { var wE = sec("다른 기기에서 쓰던 기록이 있으면"); wE.appendChild(el("p", "meta", "먼저 시작 화면 맨 아래 \"iCloud에서 불러오기\"로 기록 파일을 넣고 오십시오. 지금 시작해도 되지만 기록이 없으면 약점과 목표가 비어 있습니다")); }
+      if (Q.body) { var wB = sec("오늘 입술은 어떻습니까 (필수)"); wB.appendChild(bodyList(false, function () { Array.prototype.forEach.call(wB.querySelectorAll(".body-opt"), function (b2) { b2.setAttribute("aria-pressed", "false"); }); chk(); bodyRegen(); var nb = el("p", "meta", "정했습니다: " + bodyLabel(bodyState())); var old = wB.querySelector(".inst-done"); if (old) old.remove(); nb.className += " inst-done"; wB.appendChild(nb); })); }
+      if (Q.range) {
+        var wR = sec("편하게 나는 음역 (필수)"), lo = el("select", "sel"), hi = el("select", "sel");
+        for (var m = 40; m <= 60; m++) lo.appendChild(new Option(nmw(m), m)); for (var m2 = 72; m2 <= 89; m2++) hi.appendChild(new Option(nmw(m2), m2)); lo.value = U.lo; hi.value = U.hi;
+        var f1 = el("label", "field"); f1.appendChild(el("span", "", "낮은 음")); f1.appendChild(lo); var f2 = el("label", "field"); f2.appendChild(el("span", "", "높은 음")); f2.appendChild(hi); wR.appendChild(f1); wR.appendChild(f2);
+        wR.appendChild(el("p", "meta", "높은 음 연습 길이와 고음 상한이 이 값으로 정해집니다. 지금 소리가 편하게 나는 끝 음으로 골라 주십시오"));
+        var okB = btn("이 음역이 맞습니다", "chip sm", function () { rangeOk = true; okB.setAttribute("aria-pressed", "true"); okB.textContent = "정했습니다"; chk(); }, false); wR.appendChild(okB);
+        lo.addEventListener("change", function () { rangeOk = false; okB.setAttribute("aria-pressed", "false"); okB.textContent = "이 음역이 맞습니다"; chk(); }); hi.addEventListener("change", function () { rangeOk = false; okB.setAttribute("aria-pressed", "false"); okB.textContent = "이 음역이 맞습니다"; chk(); });
+        box2._range = { lo: lo, hi: hi };
+      }
+      Q.conc.forEach(function (x) {
+        var c = x[0], i = x[1], wC = sec(c.short + " " + c.part + " 공연 날짜 (날짜 확인 전)"), inp = el("input", "inp"); inp.type = "date"; inp.value = c.date; inp.setAttribute("aria-label", c.short + " 공연 날짜"); wC.appendChild(inp);
+        wC.appendChild(btn("이 날짜가 맞습니다", "chip sm", function () { if (!/^\d{4}-\d\d-\d\d$/.test(inp.value)) return; U.concerts[i] = Object.assign({}, U.concerts[i], { date: inp.value, confirmed: true }); saveConcerts(); try { regenNow(); } catch (e) {} wC.appendChild(el("p", "meta", "정했습니다")); }, false));
+      });
+      if (!Q.body && !Q.range && !Q.conc.length && !Q.empty) { go(); return; }
+      window.__sheet.open({ title: "연습 전에 정해 주십시오", body: box2, actions: [{ label: "연습 시작", id: "instGo2", onClick: function (b) { if (b && b.disabled) return; try { localStorage.setItem("horn-proto-flow2", "1"); } catch (e) {} if (box2._range && rangeOk) { var rl = $("#rLo"), rh = $("#rHi"); if (rl && rh) { rl.value = box2._range.lo.value; rh.value = box2._range.hi.value; rl.dispatchEvent(new Event("change")); rh.dispatchEvent(new Event("change")); } } go(); } }, { label: "이전", onClick: function () { setTimeout(instSheet, 60); } }] });
+      chk();
+    }
+    window.__sheet.open({ title: "무슨 악기로 연습하십니까", body: box, actions: [{ label: (function () { var q = pend(); return q.body || q.range || q.conc.length || q.empty ? "다음" : "연습 시작"; })(), id: "instGo", keep: true, onClick: function (b) { if (b && b.disabled) return; instApply(D); window.__sheet.close(); setTimeout(step2, 60); } }, { label: "취소" }] });
     draw();
   }
   $("#makeBtn").addEventListener("click", function (e) { if (e && e.isTrusted === false) { busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); return; } instSheet(); });
