@@ -13826,7 +13826,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     function draw() {
       box.innerHTML = ""; var h = el("h2", "onb-h", ""), sub = el("p", "onb-s", "");
       if (step === 0) {
-        h.textContent = "안녕하세요, 반가워요"; sub.textContent = "처음 한 번만 몇 가지 여쭤볼게요. 한 번 답하면 다시 묻지 않아요.";
+        h.textContent = "안녕하세요. 반갑습니다"; sub.textContent = "처음 한 번만 몇 가지 여쭙겠습니다. 한 번 답하시면 다시 묻지 않습니다.";
         box.appendChild(h); box.appendChild(sub);
         var r0 = el("div", "onb-nav"); r0.appendChild(btn("시작", "btn primary big", function () { step = 1; draw(); })); r0.appendChild(btn("건너뛰기", "btn text onb-skip", function () { finish(true); })); box.appendChild(r0); return;
       }
@@ -13877,11 +13877,11 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
         box.appendChild(nav(function () { setR(); var rl = $("#rLo"), rh = $("#rHi"); if (rl && rh) { rl.value = A.lo; rh.value = A.hi; rl.dispatchEvent(new Event("change")); rh.dispatchEvent(new Event("change")); } step = 5; draw(); })); return;
       }
       if (step === 5) {
-        h.textContent = "연습으로 얻고 싶은 것을 골라 주세요"; sub.textContent = "여러 개 골라도 돼요."; box.appendChild(h); box.appendChild(sub);
+        h.textContent = "연습으로 얻고 싶은 것을 골라 주세요"; sub.textContent = "여러 개 골라도 됩니다."; box.appendChild(h); box.appendChild(sub);
         box.appendChild(chips(ONBD.goals, A.goals, true, function () { draw(); }));
         box.appendChild(nav(function () { step = 6; draw(); })); return;
       }
-      h.textContent = "다가오는 공연이 있나요"; sub.textContent = "있으면 지금 넣고, 없으면 나중에 세팅에서 넣어도 돼요."; box.appendChild(h); box.appendChild(sub);
+      h.textContent = "다가오는 공연이 있나요"; sub.textContent = "있으면 지금 넣고, 없으면 나중에 세팅에서 넣어도 됩니다."; box.appendChild(h); box.appendChild(sub);
       var r6 = el("div", "onb-nav"); r6.appendChild(btn("이전", "btn text", function () { step = 5; draw(); }));
       r6.appendChild(btn("공연 추가", "btn", function () { finishKeep(); }));
       r6.appendChild(btn("완료", "btn primary big", function () { finish(false); })); box.appendChild(r6);
