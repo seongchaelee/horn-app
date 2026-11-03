@@ -8118,7 +8118,7 @@ window.ROUTINE_DATA = {
     }
     function startTimer() { if (P.running || !P.R) return; P.running = true; P.last = performance.now(); clearInterval(P.timer); P.timer = setInterval(tick, 500); }
     function stopTimer() { if (!P.running) return; P.running = true; tick(); P.running = false; clearInterval(P.timer); save(true); }
-    function enter() { if (!P.R) return; P.seen[P.idx] = true; startTimer(); sync(); segOpen(); if (P.pending) { var f = P.pending; P.pending = null; setTimeout(f, 0); } }
+    function enter() { if (!P.R) return; var firstSeen = !P.seen[P.idx]; P.seen[P.idx] = true; startTimer(); if (firstSeen) { var at = true; try { at = localStorage.getItem("horn-proto-autotimer") !== "0"; } catch (e) {} if (!at) setPaused(true); } sync(); segOpen(); if (P.pending) { var f = P.pending; P.pending = null; setTimeout(f, 0); } }
     function whenReady(f) { if (document.body.classList.contains("practice") && P.R) f(); else P.pending = f; }
     function leave() { segClose(); if ($("#runView").classList.contains("hide")) stopTimer(); }
     /* 진행 띠와 블록 목록 */
@@ -13018,6 +13018,15 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   var INST_TYPES = ["싱글", "더블", "트리플", "내추럴", "바그너 튜바"], INST_KEYS = { "싱글": ["F", "B♭", "E♭", "High F", "High B♭"], "바그너 튜바": { "싱글": ["B♭ tenor", "F bass", "E♭ tenor", "B♭ bass"], "더블": ["B♭ tenor + F bass"] } };
   U.inst = { type: "", key: "", sub: "", crooks: [] };
   try { var si = JSON.parse(localStorage.getItem("horn-proto-inst") || "null"); if (si && INST_TYPES.indexOf(si.type) >= 0) U.inst = { type: si.type, key: si.key || "", sub: si.sub || "", crooks: Array.isArray(si.crooks) ? si.crooks : [] }; } catch (e) {}
+  function instClean(i) {
+    var o = { type: INST_TYPES.indexOf(i && i.type) >= 0 ? i.type : "", key: (i && typeof i.key === "string") ? i.key : "", sub: (i && typeof i.sub === "string") ? i.sub : "", crooks: [] };
+    if (o.type === "싱글") { if (INST_KEYS["싱글"].indexOf(o.key) < 0) o.key = ""; o.sub = ""; }
+    else if (o.type === "바그너 튜바") { var wk = INST_KEYS["바그너 튜바"][o.sub]; if (!wk) { o.sub = ""; o.key = ""; } else if (wk.indexOf(o.key) < 0) o.key = ""; }
+    else { o.key = ""; o.sub = ""; }
+    if (o.type === "내추럴" && i && Array.isArray(i.crooks)) { var ok = (window.HornGen && window.HornGen.CROOKS || (typeof GEN !== "undefined" && GEN.CROOKS) || []).map(function (c) { return c[0]; }); i.crooks.forEach(function (c) { if (typeof c === "string" && ok.indexOf(c) >= 0 && o.crooks.indexOf(c) < 0) o.crooks.push(c); }); }
+    return o;
+  }
+  U.inst = instClean(U.inst);
   function instLabel(i) { i = i || U.inst; if (!i.type) return ""; if (i.type === "싱글") return "싱글" + (i.key ? " " + i.key : ""); if (i.type === "바그너 튜바") return "바그너 튜바 " + (i.sub || "") + (i.key ? " " + i.key : ""); return i.type; }
   window.__inst = function () { return { inst: instLabel(), instType: U.inst.type || "" }; };
   try { U.key = localStorage.getItem("horn-proto-key") || ""; } catch (e) { U.key = ""; }
@@ -13028,6 +13037,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   // 공연 준비는 기본으로 켬(사용자 답 11-01 15:40). 끄면 그 선택을 따름. 그 전에 저장된 '꺼짐'은 한 번만 켬으로 바꿈
   var CONC_MIG = false; try { CONC_MIG = localStorage.getItem("horn-proto-concert-default") === "on1"; } catch (e) {}
   U.concertOn = true; try { if (CONC_MIG && localStorage.getItem("horn-proto-concert-on") === "0") U.concertOn = false; if (!CONC_MIG) { localStorage.setItem("horn-proto-concert-default", "on1"); localStorage.setItem("horn-proto-concert-on", "1"); } } catch (e) {}
+  U.autoTimer = true; try { U.autoTimer = localStorage.getItem("horn-proto-autotimer") !== "0"; } catch (e) {}
   U.fOnly = false; U.fRepeat = true; try { U.fOnly = localStorage.getItem("horn-proto-fonly") === "1"; U.fRepeat = localStorage.getItem("horn-proto-frepeat") !== "0"; } catch (e) {}
   function concArg() { return U.concertOn ? U.concerts : "off"; }
   if (!U.concerts) U.concerts = []; // 비어 있으면 자료에 공연 파트 악보가 들어온 뒤 기본 공연을 채움(libHasOwn)
@@ -13241,6 +13251,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   function startRev(t) {
     if (hurtToday()) return;
     if (U.inst.type === "바그너 튜바") { if (API.toast) API.toast("바그너 튜바 엑섭 악보는 아직 없음. 바그너 튜바 엑섭 악보를 올린 뒤 쓸 수 있음"); return; }
+    if (U.inst.type === "내추럴") { if (API.toast) API.toast("내추럴 호른 엑섭은 아직 없음. 지금은 내추럴 호른 연습만 나옴"); return; }
     if (t) { try { localStorage.setItem("horn-proto-target-cur", tKey(t)); } catch (e) {} }
     var len = String(API.S.len && /^(15|30|45|60)$/.test(API.S.len) ? API.S.len : "30"), k = setKey(len, "엑섭"); delete U.sets[k];
     Object.keys(cacheR).forEach(function (q) { if (q.indexOf(k) === 0) delete cacheR[q]; });
@@ -13359,6 +13370,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     if (/^(15|30|45|60)$/.test(API.S.len)) U.prevLen = API.S.len; API.S.len = "5"; U.purpose = "가려 보기"; if (API.go) API.go("routine"); setMode("run");
   };
   function startMock() {
+    if (U.inst.type === "내추럴" || U.inst.type === "바그너 튜바") { if (API.toast) API.toast("이 악기용 모의 공연은 아직 없음"); return; }
     var m = mockSet(); if (!m) return;
     var len = String(m.minutes), k = setKey(len, "모의 공연"); m.savedAt = new Date().toISOString(); U.sets[k] = m;
     Object.keys(cacheR).forEach(function (q) { if (q.indexOf(k) === 0) delete cacheR[q]; });
@@ -13380,6 +13392,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     if (hi != null && hi < hMin) addWhy(function (b) { return b.kind === "high"; }, "고음 음정 " + hi + "% (" + me.hi[0] + "/" + me.hi[1] + "), 참고 연주자 " + hMin + "%. 고음도 드론에 대어 보기");
   }
   function generate(len, purpose, reroll) {
+    if (U.inst.type === "내추럴" && purpose !== "엑섭") purpose = "내추럴 호른"; else if (U.inst.type !== "내추럴" && purpose === "내추럴 호른") purpose = "유지"; // 어느 경로로 시작해도 악기에 맞게
     if (purpose === "모의 공연") { var mk = mockSet(); if (mk) return mk; purpose = "유지"; }
     if (purpose === "가려 보기") { var abk = setKey(String(len), "가려 보기"); if (U.sets[abk]) return U.sets[abk]; purpose = "유지"; }
     if (purpose === "엑섭") { var rv = revSet(len, reroll); if (rv) return rv; purpose = "유지"; }
@@ -13505,7 +13518,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     c.appendChild(cl);
     // F관 연습 선택(사용자 요청 11-01)
     var fw = el("div", "wk-conc wk-fing"); fw.appendChild(el("span", "wk-k", "F관"));
-    [["fOnly", "기초 연습은 F관만", "롱톤, 스케일, 에튀드를 F관 손가락 번호로", "horn-proto-fonly", false], ["fRepeat", "아티큘레이션 F관으로 한 번 더", "G♯4 위 음이 있을 때", "horn-proto-frepeat", true]].forEach(function (q) {
+    [["fOnly", "기초 연습은 F관만", "롱톤, 스케일, 에튀드를 F관 손가락 번호로", "horn-proto-fonly", false], ["fRepeat", "아티큘레이션 F관으로 한 번 더", "G♯4 위 음이 있을 때", "horn-proto-frepeat", true], ["autoTimer", "각 연습에 들어가면 타이머 자동 시작", "끄면 멈춘 상태로 시작", "horn-proto-autotimer", true]].forEach(function (q) {
       var r = el("label", "lrow two sw-row"), tx = el("span"); tx.appendChild(el("b", "", q[1])); tx.appendChild(el("small", "", q[2])); r.appendChild(tx);
       var sw = el("input", "sw"); sw.type = "checkbox"; sw.setAttribute("role", "switch"); sw.checked = !!U[q[0]]; sw.setAttribute("aria-label", q[1]);
       sw.addEventListener("change", function () { U[q[0]] = sw.checked; try { localStorage.setItem(q[3], sw.checked ? "1" : "0"); } catch (e) {} try { regenNow(); } catch (e) {} });
@@ -13637,7 +13650,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
         body.appendChild(T("p", "Anneke Scott 본인 연주로 확인된 음반 수록곡만. 밸브 호른 곡과 연주자 미확인 곡은 뺌. 곡마다 크룩은 대부분 확인하지 못함.", "meta"));
         N.scott.forEach(function (w) { var c = T("div", null, "nr-c"); c.appendChild(T("div", w.c + ", " + w.w, "nr-t")); c.appendChild(T("span", "연도 " + w.y + ". 호른 " + w.inst + ". 음반 " + w.rec, "meta")); if (w.u) c.appendChild(link(w.u, "출처")); body.appendChild(c); });
       } else if (cur === "con") {
-        body.appendChild(T("p", "Naturally Isaac이라는 사이트는 못 찾아, 내추럴 호른 연주자 Isaac Shieh의 음반 수록곡으로 대신 넣음. 같은 사람인지는 확인 필요.", "meta"));
+        body.appendChild(T("p", "Naturally Isaac은 내추럴 호른 연주자 Isaac Shieh가 맞다고 확인함. 사이트 자체는 찾지 못해 Isaac Shieh의 음반 수록곡으로 넣음.", "meta"));
         N.contemp.forEach(function (w) { var c = T("div", null, "nr-c"); c.appendChild(T("div", w.c + ", " + w.w, "nr-t")); c.appendChild(T("span", "작곡 " + w.y + ". 크룩 " + w.k + ". " + w.rec, "meta")); if (w.u) c.appendChild(link(w.u, "출처")); body.appendChild(c); });
       } else if (cur === "rule") {
         body.appendChild(T("p", "작곡 연도로 내추럴 호른 가능 여부를 거르는 규칙. 경계 연도는 제안이며, 작품마다 확인이 필요.", "meta"));
@@ -13663,7 +13676,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     chips($("#purpChips"), PURPOSES.filter(function (x) { return U.inst.type === "내추럴" ? x === "내추럴 호른" : !(U.inst.type && x === "내추럴 호른"); }), U.purpose, function (p) { U.purpose = p; try { localStorage.setItem("horn-proto-purpose", p); } catch (e) {} renderPurpose(); });
     var cb = $("#crookChips"); cb.classList.toggle("hide", U.purpose !== "내추럴 호른" || !numeric);
     var nrb = $("#natRepBtn"); if (nrb) { nrb.classList.toggle("hide", U.purpose !== "내추럴 호른" || !numeric); if (!nrb.__b) { nrb.__b = 1; nrb.addEventListener("click", natRepOpen); } }
-    chips(cb, [["오늘 크룩", ""]].concat(GEN.CROOKS.map(function (c) { return [({ C: "C basso", A: "A alto" }[c[0]] || c[0]).replace(/^([A-G])b/, "$1♭"), c[0]]; })), U.crook || "", function (c) { U.crook = c; try { localStorage.setItem("horn-proto-crook", c); } catch (e) {} renderPurpose(); });
+    chips(cb, [["오늘 크룩", ""]].concat(GEN.CROOKS.filter(function (c) { return !(U.inst.type === "내추럴" && U.inst.crooks.length) || U.inst.crooks.indexOf(c[0]) >= 0; }).map(function (c) { return [({ C: "C basso", A: "A alto" }[c[0]] || c[0]).replace(/^([A-G])b/, "$1♭"), c[0]]; })), U.crook || "", function (c) { U.crook = c; try { localStorage.setItem("horn-proto-crook", c); } catch (e) {} renderPurpose(); });
     chips($("#diffChips"), DIFFS, U.diff, function (d) { U.diff = d; try { localStorage.setItem("horn-proto-diff", String(d)); } catch (e) {} renderPurpose(); });
     var kb = $("#keyChips"), KO = window.HornDay ? window.HornDay.ORDER : [];
     if (kb) { chips(kb, [["자동", ""]].concat(KO.map(function (k) { return [keyName(k), k]; })), U.key || "", function (k) { U.key = k; try { localStorage.setItem("horn-proto-key", k); } catch (e) {} renderPurpose(); }); kb.classList.toggle("hide", !numeric || U.purpose === "내추럴 호른"); var kl = $("#keyLab"); if (kl) kl.classList.toggle("hide", !numeric || U.purpose === "내추럴 호른"); }
@@ -13933,37 +13946,43 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     if (!b || b.disabled) return; var old = b.textContent; b.disabled = true; b.classList.add("is-busy"); b.setAttribute("aria-busy", "true"); b.textContent = label;
     requestAnimationFrame(function () { setTimeout(function () { try { work(); } finally { b.disabled = false; b.classList.remove("is-busy"); b.removeAttribute("aria-busy"); b.textContent = old; } }, 30); });
   }
-  function instApply() {
+  function instApply(d) {
+    U.inst = instClean(d || U.inst);
     try { localStorage.setItem("horn-proto-inst", JSON.stringify(U.inst)); } catch (e) {}
+    if (U.inst.type === "내추럴" && U.inst.crooks.length && U.crook && U.inst.crooks.indexOf(U.crook) < 0) { U.crook = ""; try { localStorage.setItem("horn-proto-crook", ""); } catch (e) {} }
     if (U.db) U.db.doc("settings/inst").set(Object.assign({}, U.inst, { at: new Date().toISOString() })).catch(function () {});
-    var only = U.inst.type === "싱글" && U.inst.key === "F"; if (U.inst.type === "싱글" || U.inst.type === "더블" || U.inst.type === "트리플") { /* F관만 설정은 싱글 F에서만 자동으로 켬 */ if (U.inst.type === "싱글") { U.fOnly = only; U.fRepeat = !only; try { localStorage.setItem("horn-proto-fonly", only ? "1" : "0"); localStorage.setItem("horn-proto-frepeat", only ? "0" : "1"); } catch (e) {} } }
+    var only = U.inst.type === "싱글" && U.inst.key === "F", auto = null; try { auto = JSON.parse(localStorage.getItem("horn-proto-fauto") || "null"); } catch (e) {}
+    if (only) { if (!auto) { auto = { o: !!U.fOnly, r: !!U.fRepeat }; try { localStorage.setItem("horn-proto-fauto", JSON.stringify(auto)); } catch (e) {} } U.fOnly = true; U.fRepeat = false; }
+    else if (auto) { U.fOnly = !!auto.o; U.fRepeat = !!auto.r; try { localStorage.removeItem("horn-proto-fauto"); } catch (e) {} }
+    try { localStorage.setItem("horn-proto-fonly", U.fOnly ? "1" : "0"); localStorage.setItem("horn-proto-frepeat", U.fRepeat ? "1" : "0"); } catch (e) {}
     if (PURPOSES.indexOf(U.purpose) >= 0) { if (U.inst.type === "내추럴") U.purpose = "내추럴 호른"; else if (U.purpose === "내추럴 호른") U.purpose = "유지"; try { localStorage.setItem("horn-proto-purpose", U.purpose); } catch (e) {} }
     try { renderPurpose(); } catch (e) {}
   }
   function instSheet() {
+    var D = instClean(JSON.parse(JSON.stringify(U.inst)));
     if (!window.__sheet) { setMode("run"); return; }
-    if (!U.inst.type) { var pf = null; try { pf = JSON.parse(localStorage.getItem("horn-proto-profile") || "null"); } catch (e) {} var t0 = pf && pf.types && pf.types[0], mp = { single: "싱글", double: "더블", triple: "트리플", wagner: "바그너 튜바", natural: "내추럴" }; U.inst = { type: mp[t0] || "더블", key: "", sub: "", crooks: [] }; }
+    if (!D.type) { var pf = null; try { pf = JSON.parse(localStorage.getItem("horn-proto-profile") || "null"); } catch (e) {} var t0 = pf && pf.types && pf.types[0], mp = { single: "싱글", double: "더블", triple: "트리플", wagner: "바그너 튜바", natural: "내추럴" }; D = { type: mp[t0] || "더블", key: "", sub: "", crooks: [] }; }
     var box = el("div", "inst-box");
     function row(title, items, sel, fn, multi) {
       var w = el("div", "inst-row"); w.appendChild(el("p", "meta", title)); var cs = el("div", "chips"); items.forEach(function (it) { var lab = Array.isArray(it) ? it[0] : it, v = Array.isArray(it) ? it[1] : it, on = multi ? sel.indexOf(v) >= 0 : sel === v, b = btn(lab, "chip sm", function () { fn(v); draw(); }, on); b.setAttribute("aria-pressed", on ? "true" : "false"); cs.appendChild(b); }); w.appendChild(cs); box.appendChild(w);
     }
     function draw() {
       box.innerHTML = "";
-      row("오늘 연습할 악기", INST_TYPES, U.inst.type, function (v) { if (U.inst.type !== v) { U.inst.type = v; U.inst.key = ""; U.inst.sub = ""; } });
-      var t = U.inst.type;
-      if (t === "싱글") row("싱글 호른 조", INST_KEYS["싱글"], U.inst.key, function (v) { U.inst.key = v; });
-      if (t === "바그너 튜바") { row("바그너 튜바 종류", ["싱글", "더블"], U.inst.sub, function (v) { U.inst.sub = v; U.inst.key = v === "더블" ? INST_KEYS["바그너 튜바"]["더블"][0] : ""; }); if (U.inst.sub) row("조", INST_KEYS["바그너 튜바"][U.inst.sub], U.inst.key, function (v) { U.inst.key = v; }); }
+      row("오늘 연습할 악기", INST_TYPES, D.type, function (v) { if (D.type !== v) { D.type = v; D.key = ""; D.sub = ""; } });
+      var t = D.type;
+      if (t === "싱글") row("싱글 호른 조", INST_KEYS["싱글"], D.key, function (v) { D.key = v; });
+      if (t === "바그너 튜바") { row("바그너 튜바 종류", ["싱글", "더블"], D.sub, function (v) { D.sub = v; D.key = v === "더블" ? INST_KEYS["바그너 튜바"]["더블"][0] : ""; }); if (D.sub) row("조", INST_KEYS["바그너 튜바"][D.sub], D.key, function (v) { D.key = v; }); }
       if (t === "내추럴") {
         var all = GEN.CROOKS.map(function (c) { return [({ C: "C basso", A: "A alto" }[c[0]] || c[0]).replace(/^([A-G])b/, "$1♭"), c[0]]; });
-        row("쓸 크룩 (여러 개 선택. 비우면 전체)", all, U.inst.crooks, function (v) { var i = U.inst.crooks.indexOf(v); if (i >= 0) U.inst.crooks.splice(i, 1); else U.inst.crooks.push(v); }, true);
-        box.appendChild(el("p", "meta", "내추럴 호른을 고르면 모든 연습이 내추럴 호른 기준으로 나옴. 일반 호흡과 버징 블록은 빠짐. 커플러는 G 크룩에 끼워 F, E♭, E, D, C 키로 만드는 구성이 자료 한 곳에서만 확인됨(확인 필요). 이 키들은 가진 크룩과 겹쳐 따로 넣지 않음"));
+        row("오늘 쓸 크룩 (하나 이상 골라 주세요)", all, D.crooks, function (v) { var i = D.crooks.indexOf(v); if (i >= 0) D.crooks.splice(i, 1); else D.crooks.push(v); }, true);
+        box.appendChild(el("p", "meta", "내추럴 호른을 고르면 모든 연습이 고른 크룩으로만 나오고, 여러 개를 고르면 그 안에서만 돌아감. 일반 호흡과 버징 블록은 빠짐. 커플러는 G 크룩에 끼워 F, E♭, E, D, C 키로 만드는 구성이 자료 한 곳에서만 확인됨(확인 필요). 이 키들은 가진 크룩과 겹쳐 따로 넣지 않음"));
       }
-      if (t === "싱글" && U.inst.key === "F") box.appendChild(el("p", "meta", "싱글 F: 기초 연습을 F관 손가락 번호로 만듦"));
+      if (t === "싱글" && D.key === "F") box.appendChild(el("p", "meta", "싱글 F: 기초 연습을 F관 손가락 번호로 만듦"));
       else if (t === "싱글" || t === "바그너 튜바") box.appendChild(el("p", "meta", "이 악기 전용 연습 내용은 아직 나누지 않음(확인 필요). 기록에는 악기가 따로 남음"));
       if (t === "바그너 튜바") box.appendChild(el("p", "meta", "엑섭은 바그너 튜바 악보만 씀. 지금 앱에는 바그너 튜바 엑섭 악보가 없음"));
-      var ok = !!t && !(t === "싱글" && !U.inst.key) && !(t === "바그너 튜바" && (!U.inst.sub || !U.inst.key)); var go = $("#instGo"); if (go) { go.disabled = !ok; }
+      var ok = !!t && !(t === "내추럴" && !D.crooks.length) && !(t === "싱글" && !D.key) && !(t === "바그너 튜바" && (!D.sub || !D.key)); var go = $("#instGo"); if (go) { go.disabled = !ok; }
     }
-    window.__sheet.open({ title: "무슨 악기로 연습하나요", body: box, actions: [{ label: "연습 시작", id: "instGo", onClick: function (b) { if (b && b.disabled) return; instApply(); busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); } }, { label: "취소" }] });
+    window.__sheet.open({ title: "무슨 악기로 연습하십니까", body: box, actions: [{ label: "연습 시작", id: "instGo", onClick: function (b) { if (b && b.disabled) return; instApply(D); busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); } }, { label: "취소" }] });
     draw();
   }
   $("#makeBtn").addEventListener("click", function (e) { if (e && e.isTrusted === false) { busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); return; } instSheet(); });
