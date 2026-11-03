@@ -3125,7 +3125,9 @@ window.ROUTINE_DATA = {
     if (pain && pain.length) { effP = "회복"; reasons.push({ k: "몸 상태", t: hurt ? "오늘 " + pain.join(", ") + " 기록. 불지 않는 것이 기본. 불면 10분, C5 아래, mf 아래로" : "오늘 " + pain.join(", ") + " 기록. 고음, 큰 소리, 곡 구간 빼고 작고 낮은 회복 세트. 이어지면 진료 받기" }); }
     var puE = PURPOSE[effP] || pu0;
     var pu = { rest: puE.rest + (eased ? 0.05 : 0), band: [Math.max(1, Math.min(5, puE.band[0] + dif)), Math.max(1, Math.min(5, puE.band[1] + dif))], focus: (puE.focus || []).slice(), blocks: puE.blocks.map(function (b) { return b.slice(); }) };
-    var NPOOL = nat ? (pu.band[1] <= 2 ? NATORD.slice(0, 5) : NATORD) : null, natCr = nat ? (o.crook || NPOOL[day % NPOOL.length]) : ""; // 내추럴 호른 크룩: Domnich Eb부터, 쉬운 날은 앞 다섯 개(Dauprat 다섯 크룩)만
+    var NSEL = nat && o.crooks && o.crooks.length ? NATORD.filter(function (c) { return o.crooks.indexOf(c) >= 0; }) : [], NBASE = nat ? (pu.band[1] <= 2 ? NATORD.slice(0, 5) : NATORD) : null, NPOOL = nat ? (NSEL.length ? NSEL : NBASE) : null;
+    if (nat && o.natOnly) pu.blocks = pu.blocks.filter(function (b) { return b[0] !== "breath" && b[0] !== "buzz"; });
+    var natCr = nat ? (o.crook || NPOOL[day % NPOOL.length]) : ""; // 내추럴 호른 크룩: Domnich Eb부터, 쉬운 날은 앞 다섯 개(Dauprat 다섯 크룩)만
     if (hurt) { pu.blocks = pu.blocks.filter(function (b) { return ["longtone", "melody", "warmdown"].indexOf(b[0]) >= 0; }); pu.band = [1, 1]; cHi = Math.min(cHi, 72); }
     var adj = {};
     function note(k, s) { (adj[k] = adj[k] || []).push(s); }
@@ -9706,7 +9708,7 @@ window.ROUTINE_DATA = {
       fileName: opts.fileName || "", kind: cat.main, sub: cat.sub || "", detail: cat.detail || "", kindAuto: !!cat.auto, catV: 3,
       duration: +Math.min(opts.duration, MAX_SEC).toFixed(2), sr: opts.sr, audioId: up.id,
       summary: summarize(opts.A), notes: cn, settings: opts.settings || null,
-      bars: opts.bars || null,
+      bars: opts.bars || null, inst: (window.__inst ? window.__inst().inst : ""), instType: (window.__inst ? window.__inst().instType : ""),
       meta: { composerKo: pn.composer, composer: R.composer(pn.composer).text, titleKo: pn.title, title: lmN && !lmN.same ? lmN.title : R.title(pn.title).text, titleLib: lmN ? lmN.id : "", titleNumIn: lmN && lmN.numDiff ? lmN.numDiff : "", movement: pn.movement, key: pn.key, keyBasis: "", measures: "", memo: "", scoreId: "", scoreName: "", fromName: fromName, takeNo: pn.takeNo }
     };
     await T.db.doc("takes/" + id).set(take);
@@ -10100,7 +10102,7 @@ window.ROUTINE_DATA = {
       var seg = sliceBuf(buf, a, Math.min(z, a + MAX_SEC)), A2 = await HA.analyze(seg, { ref: 442 }), res = measureSeg(A2, ex, abc, tr), up = await uploadAudio(seg);
       var at = isFinite(fileStart) ? new Date(fileStart + a * 1000).toISOString() : new Date().toISOString();
       var id = (tl.date + "_s" + k + "_" + hashStr(f.name + "|" + b.index + "|" + k)).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_");
-      await T.db.doc("drills/" + id).set({ date: tl.date, title: ex ? ex.title : (b.title || ""), tempo: (ex && ex.tempo) || null, key: "", setKey: "", purpose: "", diff: "", kind: (blk && blk.kind) || (ex && ex.kind) || "", level: (ex && ex.level) || null, nat: tr !== 7, abc: abc, transpose: tr,
+      await T.db.doc("drills/" + id).set({ date: tl.date, title: ex ? ex.title : (b.title || ""), tempo: (ex && ex.tempo) || null, key: "", setKey: "", purpose: "", diff: "", kind: (blk && blk.kind) || (ex && ex.kind) || "", level: (ex && ex.level) || null, nat: tr !== 7, inst: (window.__inst ? window.__inst().inst : ""), instType: (window.__inst ? window.__inst().instType : ""), abc: abc, transpose: tr,
         session: { file: f.name, start: +a.toFixed(2), end: +z.toFixed(2), how: how, refined: ok2 },
         tries: [{ stats: res.stats || {}, rows: res.rows || [], tempo: res.tempo || null, clickFound: false, cue: res.cue || null, fromFile: true, notes: res.noteData || [], ev: res.ev || [], evv: window.__trend ? window.__trend.VER : 0, audioId: up.id, sr: up.sr, dur: up.dur, an: compactNotes(A2), at: at }], at: new Date().toISOString() });
       made++;
@@ -11198,7 +11200,7 @@ window.ROUTINE_DATA = {
     { k: "kind", name: "연습 종류", get: function (r) { return r.kindName || null; } },
     { k: "try", name: "시도", get: function (r) { return r.n ? r.n + "번째" : null; }, vals: ["1번째", "2번째", "3번째"] },
     { k: "src", name: "녹음", get: function (r) { return r.src; }, vals: ["루틴", "연주"] },
-    { k: "ins", name: "악기", get: function (r) { return r.nat ? "내추럴" : "모던 F"; }, vals: ["모던 F", "내추럴"] }
+    { k: "ins", name: "악기", get: function (r) { return r.instType || (r.nat ? "내추럴" : "미기록"); }, vals: ["싱글", "더블", "트리플", "내추럴", "바그너 튜바", "미기록"] }
   ];
   function ratio(p) { return p == null ? "" : (p / (100 - p)).toFixed(1) + " : 1"; }
   var METRICS = [
@@ -11507,7 +11509,7 @@ window.ROUTINE_DATA = {
       case "tempo": return "♩=" + k + " 템포의 음";
       case "dyn": return DYNW[k] || k;
       case "kind": return "'" + k + "' 연습의 음";
-      case "ins": return (k === "내추럴" ? "내추럴 호른" : "모던 F 호른") + "으로 분 음";
+      case "ins": return k === "미기록" ? "악기를 기록하기 전의 음" : (k === "내추럴" ? "내추럴 호른" : k === "바그너 튜바" ? "바그너 튜바" : k + " 호른") + "으로 분 음";
     }
     return k;
   }
@@ -12180,7 +12182,7 @@ window.ROUTINE_DATA = {
     P.drills.forEach(function (d) {
       (d.tries || []).forEach(function (t, i) {
         var s = t.stats || {};
-        out.push({ src: "drill", drill: d, date: d.date, purpose: d.purpose || "", kind: d.kind || "", title: d.title, setKey: d.setKey || "", n: i + 1, try1: i === 0, last: i === d.tries.length - 1, ev: t.ev || [], tempo: t.tempo || d.tempo || null, nat: !!d.nat,
+        out.push({ src: "drill", instType: d.instType || "", inst: d.inst || "", drill: d, date: d.date, purpose: d.purpose || "", kind: d.kind || "", title: d.title, setKey: d.setKey || "", n: i + 1, try1: i === 0, last: i === d.tries.length - 1, ev: t.ev || [], tempo: t.tempo || d.tempo || null, nat: !!d.nat,
           acc: s.total ? s.same / s.total : null, abs: s.absCents, cents: s.cents, sd: s.sd, first: s.firstMs != null ? Math.abs(s.firstMs) : null, firstSigned: s.firstMs,
           settle: s.settle, jitter: s.jitter, gaps: s.gaps, lo: s.lo, hi: s.hi, air: s.airMs != null ? s.airMs : null, notes: t.notes || [],
           rec: t.audioId && window.__takeApi && window.__takeApi.drillTake ? window.__takeApi.drillTake(d, i) : null }); // 소리를 남긴 루틴 녹음: 리뷰의 '이 마디 내 녹음 듣기'가 씀
@@ -12198,12 +12200,12 @@ window.ROUTINE_DATA = {
         var f1 = !!t.firstTry || firstOf[dt + "|" + ((t.meta && t.meta.title) || t.fileName || t.id)] === (t.id || t);
         t.reps.forEach(function (r, i) {
           var rn = (t.notes || []).filter(function (n) { return n[0] >= r.a && n[0] <= r.b; }).map(function (n) { return [n[1] + 7, n[3], n[5]]; });
-          out.push({ src: "take", take: t, rep: r.n, date: dt, purpose: "연주", kind: takeKind(t), title: (window.__takeTitle && window.__takeTitle(t, true)) || (t.meta && t.meta.title) || t.fileName, acc: r.acc, ev: r.ev || [], tempo: r.tempo || (t.settings || {}).bpm || null,
+          out.push({ src: "take", instType: t.instType || "", take: t, rep: r.n, date: dt, purpose: "연주", kind: takeKind(t), title: (window.__takeTitle && window.__takeTitle(t, true)) || (t.meta && t.meta.title) || t.fileName, acc: r.acc, ev: r.ev || [], tempo: r.tempo || (t.settings || {}).bpm || null,
             abs: r.absC, cents: r.sc, sd: r.sd, first: null, settle: null, jitter: r.jit, gaps: null, notes: rn, last: i === t.reps.length - 1, try1: f1 && i === 0 });
         });
         return;
       }
-      out.push({ src: "take", take: t, date: dt, purpose: "연주", kind: takeKind(t), title: (window.__takeTitle && window.__takeTitle(t, true)) || (t.meta && t.meta.title) || t.fileName, acc: null, ev: t.trend || [], tempo: (t.settings || {}).bpm || null,
+      out.push({ src: "take", instType: t.instType || "", take: t, date: dt, purpose: "연주", kind: takeKind(t), title: (window.__takeTitle && window.__takeTitle(t, true)) || (t.meta && t.meta.title) || t.fileName, acc: null, ev: t.trend || [], tempo: (t.settings || {}).bpm || null,
         abs: s.absCents, cents: null, sd: null, first: null, settle: s.settleMed, jitter: null, gaps: s.gaps, notes: ns, last: true,
         try1: !!t.firstTry || firstOf[dt + "|" + ((t.meta && t.meta.title) || t.fileName || t.id)] === (t.id || t) });
     });
@@ -12909,7 +12911,7 @@ window.ROUTINE_DATA = {
       saveBtn.disabled = true;
       try {
         var ctx = window.__setCtx ? window.__setCtx() : {}, noSound = await uploadTries();
-        await d.doc("drills/" + docId()).set({ date: today(), title: ex.title, pref: ex.pref || null, ab: ex.ab || null, tempo: ex.tempo || null, key: keyId || "", setKey: ctx.setKey || "", purpose: ctx.purpose || "", diff: ctx.diff || "", kind: ex.kind || "", level: ex.level || null, nat: ex.transpose != null && ex.transpose !== 7,
+        await d.doc("drills/" + docId()).set({ date: today(), title: ex.title, pref: ex.pref || null, ab: ex.ab || null, tempo: ex.tempo || null, key: keyId || "", setKey: ctx.setKey || "", purpose: ctx.purpose || "", diff: ctx.diff || "", kind: ex.kind || "", level: ex.level || null, nat: ex.transpose != null && ex.transpose !== 7, inst: (window.__inst ? window.__inst().inst : ""), instType: (window.__inst ? window.__inst().instType : ""),
           abc: exAbc(), transpose: ex.transpose != null ? ex.transpose : 7,
           tries: tries.map(function (x) { return { stats: x.stats, rows: x.rows, tempo: x.tempo, clickFound: !!x.clickFound, cue: x.cue || null, fromFile: !!x.fromFile, notes: x.noteData || [], ev: x.ev || [], evv: window.__trend ? window.__trend.VER : 0, audioId: x.audioId || "", sr: x.sr || 0, dur: x.dur || 0, an: x.an || [], at: x.at || "", self: x.self || "", cold: !!x.cold, mock: !!x.mock }; }), at: new Date().toISOString() });
         saveState(noSound ? "결과 저장됨, 소리는 저장 실패" : "");
@@ -12939,6 +12941,12 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   var U = { purpose: "유지", diff: 0, lo: 48, hi: 79, sets: {}, db: null, idx: 0, mode: "setup" };
   try { var sp = localStorage.getItem("horn-proto-purpose"); if (PURPOSES.indexOf(sp) >= 0) U.purpose = sp; } catch (e) {}
   try { U.crook = localStorage.getItem("horn-proto-crook") || ""; } catch (e) {}
+  // 연습 악기: 루틴 버튼을 누를 때 고름. type 싱글 더블 트리플 내추럴 바그너 튜바. 싱글은 key, 바그너 튜바는 sub(싱글 더블)와 key, 내추럴은 crooks(복수)
+  var INST_TYPES = ["싱글", "더블", "트리플", "내추럴", "바그너 튜바"], INST_KEYS = { "싱글": ["F", "B♭", "E♭", "High F", "High B♭"], "바그너 튜바": { "싱글": ["B♭ tenor", "F bass", "E♭ tenor", "B♭ bass"], "더블": ["B♭ tenor + F bass"] } };
+  U.inst = { type: "", key: "", sub: "", crooks: [] };
+  try { var si = JSON.parse(localStorage.getItem("horn-proto-inst") || "null"); if (si && INST_TYPES.indexOf(si.type) >= 0) U.inst = { type: si.type, key: si.key || "", sub: si.sub || "", crooks: Array.isArray(si.crooks) ? si.crooks : [] }; } catch (e) {}
+  function instLabel(i) { i = i || U.inst; if (!i.type) return ""; if (i.type === "싱글") return "싱글" + (i.key ? " " + i.key : ""); if (i.type === "바그너 튜바") return "바그너 튜바 " + (i.sub || "") + (i.key ? " " + i.key : ""); return i.type; }
+  window.__inst = function () { return { inst: instLabel(), instType: U.inst.type || "" }; };
   try { U.key = localStorage.getItem("horn-proto-key") || ""; } catch (e) { U.key = ""; }
   try { var sd = localStorage.getItem("horn-proto-diff"); if (sd != null && /^-?1$|^0$/.test(sd)) U.diff = +sd; } catch (e) {}
   try { var rr = JSON.parse(localStorage.getItem("horn-proto-range") || "null"); if (rr && rr.lo && rr.hi) { U.lo = rr.lo; U.hi = rr.hi; } } catch (e) {}
@@ -12970,7 +12978,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   function today() { var d = new Date(), z = function (n) { return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()); }
   function strip(abc) { var x = String(abc || "").replace(/^T:.*\n/m, "").replace(/^Q:.*\n/m, ""); return window.HornGen ? window.HornGen.oldBass(x) : x; }
   function diffName(d) { return DIFFS.filter(function (x) { return x[1] === d; })[0][0]; }
-  function setKey(len, p, date) { return ((date || (U.mode === "run" && U.runDate ? U.runDate : today())) + "_" + len + "_" + p + "_" + (U.diff < 0 ? "e" : U.diff > 0 ? "h" : "n") + (p === "내추럴 호른" && U.crook ? "_" + U.crook : "") + (p !== "내추럴 호른" && U.key ? "_k" + U.key : "")).replace(/ /g, "").replace("#", "s"); }
+  function setKey(len, p, date) { return ((date || (U.mode === "run" && U.runDate ? U.runDate : today())) + "_" + len + "_" + p + "_" + (U.diff < 0 ? "e" : U.diff > 0 ? "h" : "n") + (p === "내추럴 호른" && U.crook ? "_" + U.crook : "") + (p !== "내추럴 호른" && U.key ? "_k" + U.key : "") + (U.inst.type && U.inst.type !== "더블" ? "_i" + instLabel() + (U.inst.type === "내추럴" && U.inst.crooks.length ? "_" + U.inst.crooks.join("") : "") : "")).replace(/ /g, "").replace("#", "s"); }
   function mmss(sec) { sec = Math.round(sec); var m = Math.floor(sec / 60), r = sec % 60; return m ? m + "분" + (r ? " " + r + "초" : "") : r + "초"; }
   function keyName(k) { return window.HornDay ? window.HornDay.lab(k) : k; }
 
@@ -13154,11 +13162,12 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     s.blocks.splice(at, 0, blk); if (entBlk) { s.blocks.splice(at, 0, entBlk); var ov2 = entBlk.min, g2 = 0; while (ov2 > 0 && g2++ < 20) { var big2 = s.blocks.filter(function (b) { return b.kind !== "warmup" && b !== blk && b !== entBlk; }).sort(function (a, b) { return b.min - a.min; })[0]; if (!big2 || big2.min <= 3) break; big2.min--; ov2--; } }
     s.reasons = (s.reasons || []).concat([{ k: "엑섭", t: C.x.title }, { k: "요구", t: C.D.slice(0, 4).map(function (d) { return d.chip; }).join(", ") }]);
     s.purpose = "엑섭"; s.rev = { title: C.x.title, run: C.run, step: L.cur.step, unit: L.cur.u.full ? "" : L.cur.u.a + "-" + L.cur.u.b + "마디", chips: C.D.slice(0, 4).map(function (d) { return d.chip; }) };
-    s.lo = U.lo; s.hi = U.hi; s.diff = U.diff; s.temp = !libReady(); s.weak = weak.slice(0, 3).map(function (w) { return w.name; });
+    s.inst = instLabel(); s.instType = U.inst.type || ""; s.lo = U.lo; s.hi = U.hi; s.diff = U.diff; s.temp = !libReady(); s.weak = weak.slice(0, 3).map(function (w) { return w.name; });
     return s;
   }
   function startRev(t) {
     if (hurtToday()) return;
+    if (U.inst.type === "바그너 튜바") { if (API.toast) API.toast("바그너 튜바 엑섭 악보는 아직 없음. 바그너 튜바 엑섭 악보를 올린 뒤 쓸 수 있음"); return; }
     if (t) { try { localStorage.setItem("horn-proto-target-cur", tKey(t)); } catch (e) {} }
     var len = String(API.S.len && /^(15|30|45|60)$/.test(API.S.len) ? API.S.len : "30"), k = setKey(len, "엑섭"); delete U.sets[k];
     Object.keys(cacheR).forEach(function (q) { if (q.indexOf(k) === 0) delete cacheR[q]; });
@@ -13303,7 +13312,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     if (purpose === "엑섭") { var rv = revSet(len, reroll); if (rv) return rv; purpose = "유지"; }
     var weak = window.__prog ? window.__prog.weak().list : [];
     var cx0 = ctxNow(), hx = null; try { hx = window.HornHRM ? window.HornHRM.ctx({ concerts: U.concerts, hi: U.hi, history: history(), gap: cx0.gapDays }) : null; } catch (e) { hx = null; } // 고음 모듈: 공연 날짜는 공연 준비 스위치와 상관없이
-    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: purpose, date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: U.diff, weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, purpose), history: history(), concerts: concArg(), candidates: 4 });
+    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: purpose, crooks: U.inst.type === "내추럴" ? U.inst.crooks : null, natOnly: U.inst.type === "내추럴", date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: U.diff, weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, purpose), history: history(), concerts: concArg(), candidates: 4 });
     s.lo = U.lo; s.hi = U.hi; s.diff = U.diff; s.temp = !libReady(); s.weak = weak.slice(0, 3).map(function (w) { return w.name; });
     try { endWin(s); } catch (e) {}
     try { benchNote(s); } catch (e) {}
@@ -13578,7 +13587,7 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
   }
   function renderPurpose() {
     var numeric = /^\d+$/.test(API.S.len);
-    chips($("#purpChips"), PURPOSES, U.purpose, function (p) { U.purpose = p; try { localStorage.setItem("horn-proto-purpose", p); } catch (e) {} renderPurpose(); });
+    chips($("#purpChips"), PURPOSES.filter(function (x) { return U.inst.type === "내추럴" ? x === "내추럴 호른" : !(U.inst.type && x === "내추럴 호른"); }), U.purpose, function (p) { U.purpose = p; try { localStorage.setItem("horn-proto-purpose", p); } catch (e) {} renderPurpose(); });
     var cb = $("#crookChips"); cb.classList.toggle("hide", U.purpose !== "내추럴 호른" || !numeric);
     var nrb = $("#natRepBtn"); if (nrb) { nrb.classList.toggle("hide", U.purpose !== "내추럴 호른" || !numeric); if (!nrb.__b) { nrb.__b = 1; nrb.addEventListener("click", natRepOpen); } }
     chips(cb, [["오늘 크룩", ""]].concat(GEN.CROOKS.map(function (c) { return [({ C: "C basso", A: "A alto" }[c[0]] || c[0]).replace(/^([A-G])b/, "$1♭"), c[0]]; })), U.crook || "", function (c) { U.crook = c; try { localStorage.setItem("horn-proto-crook", c); } catch (e) {} renderPurpose(); });
@@ -13851,7 +13860,40 @@ window.__NATREP={"rule":{"lines":["판정 뜻: 가능은 작곡 연도가 1815�
     if (!b || b.disabled) return; var old = b.textContent; b.disabled = true; b.classList.add("is-busy"); b.setAttribute("aria-busy", "true"); b.textContent = label;
     requestAnimationFrame(function () { setTimeout(function () { try { work(); } finally { b.disabled = false; b.classList.remove("is-busy"); b.removeAttribute("aria-busy"); b.textContent = old; } }, 30); });
   }
-  $("#makeBtn").addEventListener("click", function () { busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); });
+  function instApply() {
+    try { localStorage.setItem("horn-proto-inst", JSON.stringify(U.inst)); } catch (e) {}
+    if (U.db) U.db.doc("settings/inst").set(Object.assign({}, U.inst, { at: new Date().toISOString() })).catch(function () {});
+    var only = U.inst.type === "싱글" && U.inst.key === "F"; if (U.inst.type === "싱글" || U.inst.type === "더블" || U.inst.type === "트리플") { /* F관만 설정은 싱글 F에서만 자동으로 켬 */ if (U.inst.type === "싱글") { U.fOnly = only; U.fRepeat = !only; try { localStorage.setItem("horn-proto-fonly", only ? "1" : "0"); localStorage.setItem("horn-proto-frepeat", only ? "0" : "1"); } catch (e) {} } }
+    if (PURPOSES.indexOf(U.purpose) >= 0) { if (U.inst.type === "내추럴") U.purpose = "내추럴 호른"; else if (U.purpose === "내추럴 호른") U.purpose = "유지"; try { localStorage.setItem("horn-proto-purpose", U.purpose); } catch (e) {} }
+    try { renderPurpose(); } catch (e) {}
+  }
+  function instSheet() {
+    if (!window.__sheet) { setMode("run"); return; }
+    if (!U.inst.type) { var pf = null; try { pf = JSON.parse(localStorage.getItem("horn-proto-profile") || "null"); } catch (e) {} var t0 = pf && pf.types && pf.types[0], mp = { single: "싱글", double: "더블", triple: "트리플", wagner: "바그너 튜바", natural: "내추럴" }; U.inst = { type: mp[t0] || "더블", key: "", sub: "", crooks: [] }; }
+    var box = el("div", "inst-box");
+    function row(title, items, sel, fn, multi) {
+      var w = el("div", "inst-row"); w.appendChild(el("p", "meta", title)); var cs = el("div", "chips"); items.forEach(function (it) { var lab = Array.isArray(it) ? it[0] : it, v = Array.isArray(it) ? it[1] : it, on = multi ? sel.indexOf(v) >= 0 : sel === v, b = btn(lab, "chip sm", function () { fn(v); draw(); }, on); b.setAttribute("aria-pressed", on ? "true" : "false"); cs.appendChild(b); }); w.appendChild(cs); box.appendChild(w);
+    }
+    function draw() {
+      box.innerHTML = "";
+      row("오늘 연습할 악기", INST_TYPES, U.inst.type, function (v) { if (U.inst.type !== v) { U.inst.type = v; U.inst.key = ""; U.inst.sub = ""; } });
+      var t = U.inst.type;
+      if (t === "싱글") row("싱글 호른 조", INST_KEYS["싱글"], U.inst.key, function (v) { U.inst.key = v; });
+      if (t === "바그너 튜바") { row("바그너 튜바 종류", ["싱글", "더블"], U.inst.sub, function (v) { U.inst.sub = v; U.inst.key = v === "더블" ? INST_KEYS["바그너 튜바"]["더블"][0] : ""; }); if (U.inst.sub) row("조", INST_KEYS["바그너 튜바"][U.inst.sub], U.inst.key, function (v) { U.inst.key = v; }); }
+      if (t === "내추럴") {
+        var all = GEN.CROOKS.map(function (c) { return [({ C: "C basso", A: "A alto" }[c[0]] || c[0]).replace(/^([A-G])b/, "$1♭"), c[0]]; });
+        row("쓸 크룩 (여러 개 선택. 비우면 전체)", all, U.inst.crooks, function (v) { var i = U.inst.crooks.indexOf(v); if (i >= 0) U.inst.crooks.splice(i, 1); else U.inst.crooks.push(v); }, true);
+        box.appendChild(el("p", "meta", "내추럴 호른을 고르면 모든 연습이 내추럴 호른 기준으로 나옴. 일반 호흡과 버징 블록은 빠짐. 커플러는 G 크룩에 끼워 F, E♭, E, D, C 키로 만드는 구성이 자료 한 곳에서만 확인됨(확인 필요). 이 키들은 가진 크룩과 겹쳐 따로 넣지 않음"));
+      }
+      if (t === "싱글" && U.inst.key === "F") box.appendChild(el("p", "meta", "싱글 F: 기초 연습을 F관 손가락 번호로 만듦"));
+      else if (t === "싱글" || t === "바그너 튜바") box.appendChild(el("p", "meta", "이 악기 전용 연습 내용은 아직 나누지 않음(확인 필요). 기록에는 악기가 따로 남음"));
+      if (t === "바그너 튜바") box.appendChild(el("p", "meta", "엑섭은 바그너 튜바 악보만 씀. 지금 앱에는 바그너 튜바 엑섭 악보가 없음"));
+      var ok = !!t && !(t === "싱글" && !U.inst.key) && !(t === "바그너 튜바" && (!U.inst.sub || !U.inst.key)); var go = $("#instGo"); if (go) { go.disabled = !ok; }
+    }
+    window.__sheet.open({ title: "무슨 악기로 연습하나요", body: box, actions: [{ label: "연습 시작", id: "instGo", onClick: function (b) { if (b && b.disabled) return; instApply(); busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); } }, { label: "취소" }] });
+    draw();
+  }
+  $("#makeBtn").addEventListener("click", function (e) { if (e && e.isTrusted === false) { busy($("#makeBtn"), "만드는 중", function () { setMode("run"); }); return; } instSheet(); });
   $("#setupBtn").addEventListener("click", function () { setMode("setup"); });
   $("#rerollBtn").addEventListener("click", function () {
     busy($("#rerollBtn"), "뽑는 중", function () {
