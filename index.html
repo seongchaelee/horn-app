@@ -6648,9 +6648,25 @@ window.ROUTINE_DATA = {
   }
   function mmss(sec) { sec = Math.round(sec); var m = Math.floor(sec / 60), r = sec % 60; return m ? m + "분" + (r ? " " + r + "초" : "") : r + "초"; }
   // 넘지 않을 선: 고음 블록 상한(쉼 포함), 앞에 중음 8분, 하루 한 블록
+  // 다른 블록의 G5 위 음 길이(반복 포함, 초)
+  function outsideHi(b) { var SA = G.HornStudies && G.HornStudies.abc, tot = 0; if (!SA || !SA.notes) return 0; (b.items || []).forEach(function (x) { tot += hiSecOf(x, SA) * (x.reps || 1); }); return tot; }
+  function hiSecOf(x, SA) { if (!x.abc) return 0; var nn = null; try { nn = SA.notes(x.abc); } catch (e) { nn = null; } if (!nn || !nn.notes) return 0; var tp = x.tempo || nn.tempo || 60, sx = 0; nn.notes.forEach(function (n) { if (n.m != null && n.m >= 79) sx += n.d * 60 / tp; }); return sx; }
+  // 고음 블록이 없는 날(11-03): 그날 고음 상한(P.highCap, 기본 240초)이 다른 블록의 G5 위 음에도 적용됨. 같은 재료의 반복만 줄이고, 한 번이 넘는 곡은 지우지 않음
+  function guardNoHigh(blocks, P) {
+    var cap = Math.min(480, (P && P.highCap) || 240), SA = G.HornStudies && G.HornStudies.abc; if (!SA || !SA.notes) return null;
+    var all = function () { var t = 0; blocks.forEach(function (b) { t += outsideHi(b); }); return Math.round(t); }, t0 = all(), cut = 0;
+    if (t0 <= cap) return null;
+    for (var g = 0; g < 60 && all() > cap; g++) {
+      var best = null; blocks.forEach(function (b) { (b.items || []).forEach(function (x) { if ((x.reps || 1) > 1 && hiSecOf(x, SA) > 0) best = { b: b, x: x }; }); });
+      if (!best) break;
+      var sec = Math.round(best.x.sec || 30); best.x.reps--; best.b.playSec -= sec; best.b.restSec += sec; cut++;
+    }
+    if (!cut) return null;
+    return { blocks: blocks, why: ["고음 블록 없는 날인데 다른 연습의 G5 위가 " + t0 + "초라 반복을 줄여 " + all() + "초로"] };
+  }
   function guard(blocks, P) {
     var why = [], his = []; blocks.forEach(function (b, i) { if (b.kind === "high") his.push(i); });
-    if (!his.length) return null;
+    if (!his.length) return guardNoHigh(blocks, P);
     his.slice(1).reverse().forEach(function (i) { var b = blocks[i]; blocks.splice(i, 1); });
     var hi = his[0], hb = blocks[hi], cap = Math.min(480, P.tplOn ? P.highCap || 480 : P.highCap || 240), freed = 0;
     function tot() { return hb.playSec + hb.restSec; }
