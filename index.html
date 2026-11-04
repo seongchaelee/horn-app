@@ -521,6 +521,25 @@ tr.link:hover td{background:var(--sunk)}
 .tk-bulk-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}.tk-bulk-f{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--text2)}.tk-bulk-f select{font:inherit;font-size:15px;min-height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 8px}
 .tk-bulk .btn.primary{width:100%;min-height:48px}
 body:has(#takeBulk) #takeList{padding-bottom:260px}
+
+body.pc-open{overflow:hidden}
+#libSrc,#libInfo{display:none!important}
+.pc-ov{position:fixed;inset:0;z-index:90;background:var(--bg);color:var(--text);overflow:auto;-webkit-overflow-scrolling:touch}
+.pc-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.pc-title{font-size:var(--fs-head);line-height:var(--lh-head);min-width:0;overflow-wrap:anywhere}
+.pc-body{max-width:760px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:14px}
+.pc-score{background:var(--paper);border-radius:var(--r-md);padding:6px;overflow:hidden}
+.pc-score.pc-drag{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+.pc-score .pc-sel{fill:var(--accent)!important;stroke:var(--accent)!important}
+.pc-sel-info{font-size:var(--fs-sub);color:var(--text2);min-height:20px}
+.pc-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pc-chips{display:flex;flex-wrap:wrap;gap:8px}
+.pc-read{display:flex;align-items:baseline;gap:10px}
+.pc-note{font-size:var(--fs-t2);line-height:var(--lh-t2);min-width:64px;font-family:var(--font-num)}
+.pc-trace{width:100%;height:auto;border-radius:var(--r-sm);display:block}
+.pc-q{font:inherit;font-size:16px;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);width:100%}
+.pc-list{display:flex;flex-direction:column;gap:8px}
+.pc-item{font:inherit;text-align:left;display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;min-height:var(--hit)}
 </style>
 <script>/*! abcjs_basic v6.5.2 Copyright © 2009-2024 Paul Rosen and Gregory Dyke (https://abcjs.net) */
 /*! For license information please see abcjs_basic.LICENSE */
@@ -1767,12 +1786,23 @@ svg text,svg tspan{font-family:var(--f-ui)!important}
 body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40px + env(safe-area-inset-bottom,0px))!important}
 .rv-wl{margin:4px 0 0;padding-left:18px}.rv-wl li{margin:8px 0}.rv-wl .meta{display:block;margin:2px 0 0}.onb-ov{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}body.onb-open{overflow:hidden}.onb-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px}.onb-h{margin:0;font-size:22px;line-height:1.35}.onb-s{margin:0;color:var(--muted,inherit);opacity:.8}.onb-ch{gap:8px;flex-wrap:wrap;overflow:visible}.onb-ch .chip{padding:10px 16px;font-size:16px}.onb-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.onb-skip{margin-left:auto}.onb-grp{display:flex;flex-direction:column;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.onb-gt{font-size:16px}.onb-card{display:flex;flex-direction:column;gap:10px}.onb-r{display:flex;align-items:center;gap:12px;min-height:44px;flex-wrap:wrap}.onb-r .wk-k{min-width:72px}.onb-x{align-self:flex-start}.nr-c{border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:4px}.nr-t{font-size:16px}.nr-b{display:inline-block;padding:1px 8px;border:1px solid var(--line);border-radius:10px;font-size:13px;margin-right:6px}.nr-ov{align-items:flex-start}.nr-box{max-width:560px;width:100%;display:flex;flex-direction:column;gap:10px}.nr-top{display:flex;gap:8px;align-items:center;justify-content:space-between}.nr-a{display:block}.nr-sel{font-size:15px;padding:6px}.nr-box .chips{flex-wrap:wrap;overflow:visible}
 #setupView.custom .cfg-time,#setupView.custom #suggestBox .sg-row{display:none!important}#setupView>#setupCta{order:99}#setupView .sg-row .sg-pick{background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--text2);font-weight:600}#setupView .sg-row.first .sg-pick{display:none!important}#setupView>#todayCfg{order:-30}.today-cfg{display:flex;flex-direction:column;gap:4px;padding:12px 14px}.today-cfg .chips{gap:6px;margin-bottom:6px}.today-cfg .chip.sm{min-height:36px;padding:0 12px}
-.tk-prog{display:flex;flex-direction:column;gap:6px}.tk-prog-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.tk-prog-n{font-size:var(--fs-title,28px);letter-spacing:-.02em}
-.tk-prog-say{font-weight:600;color:var(--text2)}.tk-prog-say.up{color:var(--accent)}.tk-prog-say.down{color:var(--text)}
-.tk-prog-svg{width:100%;height:auto;display:block}.tk-prog-grid{stroke:var(--line);stroke-width:1}.tk-prog-ax{fill:var(--text2);font-size:12px}
-.tk-prog-line{stroke:var(--accent);stroke-width:2;stroke-linejoin:round}.tk-prog-dot{fill:var(--card);stroke:var(--text2);stroke-width:1.5}.tk-prog-dot.last{fill:var(--accent);stroke:var(--accent)}
-.tk-prog-leg{margin:0}.tk-prog-rows{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:4px}
-.tk-prog-row{display:grid;grid-template-columns:64px 1fr 44px 20px;align-items:center;gap:8px;min-height:44px;border:0;background:none;padding:2px 0;color:var(--text);font:inherit;text-align:left;cursor:pointer}.tk-prog-row b{text-align:right}.tk-prog-ar.up{color:var(--accent)}
+.tk-prog{display:flex;flex-direction:column;gap:6px;padding:18px 18px 14px;border-radius:var(--r-lg);background:var(--card);box-shadow:var(--hair,0 0 0 1px var(--line))}
+.tk-prog-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tk-prog-name{font-size:var(--fs-sub);font-weight:600;color:var(--text2)}
+.tk-prog-chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--fill);color:var(--text2)}
+.tk-prog-chip.up{background:var(--accent-soft);color:var(--on-soft)}.tk-prog-chip.down{background:var(--fill);color:var(--text)}
+.tk-prog-n{font-size:48px;line-height:52px;letter-spacing:-.03em;font-family:var(--font-num);font-weight:700}
+.tk-prog-sub{font-size:var(--fs-sub);color:var(--text2)}
+.tk-prog-svg{width:100%;height:auto;display:block;margin-top:6px}.tk-prog-grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}.tk-prog-grid.mid{stroke-dasharray:none;opacity:.6}.tk-prog-ax{fill:var(--text3);font-size:11px}
+.tk-g0{stop-color:var(--accent);stop-opacity:.26}.tk-g1{stop-color:var(--accent);stop-opacity:0}
+.tk-prog-line{stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.tk-prog-line.sm{stroke-width:2}
+.tk-prog-dot{fill:var(--text3);opacity:.4}.tk-prog-dot.last{fill:var(--accent);opacity:1;stroke:var(--card);stroke-width:2}.tk-prog-halo{fill:var(--accent);opacity:.18}
+.tk-prog-leg{margin:0}
+.tk-prog-rows{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.tk-prog-row{display:grid;grid-template-columns:1fr auto 120px;grid-template-areas:"nm pc sp" "ar pc sp" "bar bar bar";align-items:center;column-gap:12px;row-gap:6px;border:0;background:var(--fill);padding:14px 16px;border-radius:var(--r-md);color:var(--text);font:inherit;text-align:left;cursor:pointer;min-height:var(--hit)}
+.tk-prog-nm{grid-area:nm;font-weight:600}.tk-prog-pc{grid-area:pc;font-size:24px;font-family:var(--font-num);letter-spacing:-.02em}.tk-prog-ar{grid-area:ar;font-size:12px;color:var(--text2)}.tk-prog-ar.up{color:var(--accent);font-weight:700}
+.tk-prog-row .tk-prog-svg{grid-area:sp;margin:0}
+.tk-prog-bar{grid-area:bar;height:6px;border-radius:999px;background:var(--line);overflow:hidden}.tk-prog-bar i{display:block;height:100%;border-radius:999px;background:var(--accent)}
 .sw,#hrmExplore{position:relative}.sw::after{content:"";position:absolute;left:-4px;right:-4px;top:-7px;bottom:-7px}#hrmExplore{min-height:44px}
 .wk-cell[aria-pressed="true"] .wk-dow,.wk-cell[aria-pressed="true"] .wk-key{color:inherit!important}
 #setupView .sg-row.first.unsel{opacity:.72}#setupView .sg-row.first.unsel .sg-pick{display:flex!important;width:auto;justify-self:start;height:40px;padding:0 16px;background:none;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--line);font-size:15px;font-weight:600;border-radius:12px}#setupView .sg-row.first.unsel .sg-tx{margin-bottom:12px}#setupView .sg-row[aria-pressed="true"]:not(.first){box-shadow:inset 0 0 0 2px var(--accent);border-radius:12px}
@@ -1924,7 +1954,7 @@ body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40p
   <section class="view hide" id="v-lib">
     <div class="lib-top"><input type="search" id="libQ" class="inp" placeholder="곡이나 연습 이름으로 찾기" aria-label="곡이나 연습 이름으로 찾기"><button type="button" class="btn more" id="libMoreMenu" aria-label="더보기" aria-expanded="false"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>
     <div class="chips" id="libCat" role="group" aria-label="분류"></div>
-    <details class="lib-more"><summary>출처와 난이도</summary>
+    <details class="lib-more"><summary>난이도</summary>
     <div class="chips" id="libSrc" role="group" aria-label="출처와 음역"></div>
     <div class="chips" id="libLv" role="group" aria-label="난이도"></div>
     </details>
@@ -1969,10 +1999,10 @@ body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40p
 </div>
 <nav class="tabs" aria-label="화면">
   <button type="button" data-v="routine" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 21h9L14 3.5h-4z"/><path d="M12 16l4.5-8"/><path d="M8.6 14h6.8"/></svg>루틴</button>
+  <button type="button" data-v="lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5h13v17h-13z"/><path d="M8 8h8M8 10.5h8M8 13h8M8 15.5h5"/></svg>연습</button>
   <button type="button" data-v="takes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 12h1.5M6.5 8.5v7M10 5v14M13.5 9v6M17 6.5v11M20.5 11v2"/></svg>기록</button>
   <button type="button" data-v="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 17.5a8.5 8.5 0 0 1 17 0"/><path d="M12 17.5l3.6-6.2"/><path d="M12 9V7.5M7.2 11.2l-1-1M16.8 11.2l1-1"/></svg>리뷰</button>
   <button type="button" data-v="hrm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="5.5" cy="18.5" rx="2.2" ry="1.6"/><ellipse cx="12" cy="13.5" rx="2.2" ry="1.6"/><ellipse cx="18.5" cy="8.5" rx="2.2" ry="1.6"/><path d="M7.7 18.3V13M14.2 13.3V8M20.7 8.3V3"/></svg>고음</button>
-  <button type="button" data-v="lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5h13v17h-13z"/><path d="M8 8h8M8 10.5h8M8 13h8M8 15.5h5"/></svg>자료</button>
 </nav>
 
 <script>
@@ -10409,15 +10439,21 @@ window.ROUTINE_DATA = {
     return out;
   }
   function progSvg(S, W, H, big) {
-    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), L = big ? 26 : 2, R = 6, Tp = 6, B = 6, n = S.v.length;
+    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), L = big ? 42 : 2, R = big ? 10 : 4, Tp = big ? 10 : 4, B = big ? 22 : 4, n = S.v.length, gid = "pg" + Math.random().toString(36).slice(2, 7);
     svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("class", "tk-prog-svg"); svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", "음 맞음 " + S.v.join("%, ") + "%");
-    function add(tag, at, txt) { var e = document.createElementNS(ns, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; }
-    var X = function (i) { return n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1); }, Y = function (p) { return Tp + (H - Tp - B) * (1 - p / 100); };
-    if (big) [0, 50, 100].forEach(function (g) { add("line", { x1: L, x2: W - R, y1: Y(g), y2: Y(g), "class": "tk-prog-grid" }); add("text", { x: L - 4, y: Y(g) + 3, "text-anchor": "end", "class": "tk-prog-ax" }, g + "%"); });
+    function add(tag, at, txt, par) { var e = document.createElementNS(ns, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; (par || svg).appendChild(e); return e; }
+    var X = function (i) { return n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1); }, Y = function (p) { return Tp + (H - Tp - B) * (1 - Math.max(0, Math.min(100, p)) / 100); };
+    var df = add("defs", {}); var lg = add("linearGradient", { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 }, null, df); add("stop", { offset: "0%", "class": "tk-g0" }, null, lg); add("stop", { offset: "100%", "class": "tk-g1" }, null, lg);
+    if (big) [0, 50, 100].forEach(function (g) { add("line", { x1: L, x2: W - R, y1: Y(g), y2: Y(g), "class": "tk-prog-grid" + (g === 50 ? " mid" : "") }); add("text", { x: L - 8, y: Y(g) + 4, "text-anchor": "end", "class": "tk-prog-ax" }, g + "%"); });
     var ma = S.v.map(function (_, i) { var a = S.v.slice(Math.max(0, i - 2), i + 1); return a.reduce(function (x, y) { return x + y; }, 0) / a.length; });
-    add("polyline", { points: ma.map(function (p, i) { return X(i).toFixed(1) + "," + Y(p).toFixed(1); }).join(" "), fill: "none", "class": "tk-prog-line" });
-    S.v.forEach(function (p, i) { add("circle", { cx: X(i).toFixed(1), cy: Y(p).toFixed(1), r: big ? 3.5 : 2.5, "class": "tk-prog-dot" + (i === n - 1 ? " last" : "") }); });
+    var P = ma.map(function (p, i) { return [X(i), Y(p)]; }), d = "M" + P[0][0].toFixed(1) + "," + P[0][1].toFixed(1);
+    for (var i = 0; i < P.length - 1; i++) { var p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2, t = 0.18; d += " C" + (p1[0] + (p2[0] - p0[0]) * t).toFixed(1) + "," + (p1[1] + (p2[1] - p0[1]) * t).toFixed(1) + " " + (p2[0] - (p3[0] - p1[0]) * t).toFixed(1) + "," + (p2[1] - (p3[1] - p1[1]) * t).toFixed(1) + " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1); }
+    if (big && n > 1) add("path", { d: d + " L" + P[n - 1][0].toFixed(1) + "," + (H - B) + " L" + P[0][0].toFixed(1) + "," + (H - B) + " Z", fill: "url(#" + gid + ")" });
+    if (big) S.v.forEach(function (p, i) { add("circle", { cx: X(i).toFixed(1), cy: Y(p).toFixed(1), r: 2, "class": "tk-prog-dot" }); });
+    add("path", { d: d, fill: "none", "class": "tk-prog-line" + (big ? "" : " sm") });
+    var lp = P[n - 1]; if (big) add("circle", { cx: lp[0].toFixed(1), cy: lp[1].toFixed(1), r: 9, "class": "tk-prog-halo" }); add("circle", { cx: lp[0].toFixed(1), cy: lp[1].toFixed(1), r: big ? 4.5 : 3, "class": "tk-prog-dot last" });
+    if (big && S.days[0]) { var f = function (dd) { return dd ? dd.slice(5).replace("-", "월 ") + "일" : ""; }; add("text", { x: L, y: H - 4, "class": "tk-prog-ax" }, f(S.days[0])); add("text", { x: W - R, y: H - 4, "text-anchor": "end", "class": "tk-prog-ax" }, f(S.days[n - 1])); }
     return svg;
   }
   function progWord(S) { return S.dir === "up" ? "올라가는 중" : S.dir === "down" ? "내려가는 중" : S.dir === "flat" ? "비슷함" : ""; }
@@ -10427,16 +10463,21 @@ window.ROUTINE_DATA = {
     var S = progSeries(all.filter(inCat)), card = el("div", { cls: "card tk-prog" });
     var name = T.cat === "all" ? "전체" : (C.MAIN.filter(function (x) { return x[0] === T.cat; })[0] || [0, T.cat])[1];
     if (S.n < 2) { card.appendChild(el("p", { cls: "meta", text: name + ": 소리를 분석한 녹음이 둘 이상 쌓이면 발전 그래프가 보입니다" })); host.appendChild(card); return; }
-    var head = el("div", { cls: "tk-prog-head" }, [el("span", { cls: "meta", text: name + " 음 맞음(±10센트 안 시간)" }), el("b", { cls: "tk-prog-n", text: S.recent + "%" })]);
-    card.appendChild(head);
-    var say = S.dir ? "앞 " + Math.min(3, Math.floor(S.n / 2)) + "개 평균 " + S.prev + "%에서 " + (S.delta > 0 ? "+" : "") + S.delta + "%p, " + progWord(S) : "녹음 " + S.n + "개. 방향은 4개부터 보입니다";
-    var sp = el("span", { cls: "tk-prog-say " + (S.dir || ""), text: (S.dir === "up" ? "▲ " : S.dir === "down" ? "▼ " : S.dir === "flat" ? "■ " : "") + say }); card.appendChild(sp);
-    card.appendChild(progSvg(S, 326, 96, true));
-    card.appendChild(el("p", { cls: "meta tk-prog-leg", text: "점: 녹음 한 개. 선: 최근 3개 평균. 가장 오른쪽 점이 가장 최근" + (S.days[0] ? " (" + S.days[0].slice(5).replace("-", "월 ") + "일부터)" : "") }));
+    var k3 = Math.min(3, Math.floor(S.n / 2)), chipTxt = S.dir ? (S.dir === "up" ? "▲ " : S.dir === "down" ? "▼ " : "") + (S.delta > 0 ? "+" : "") + S.delta + "%p" : "";
+    card.appendChild(el("div", { cls: "tk-prog-head" }, [el("span", { cls: "tk-prog-name", text: name + " 음 맞음" }), S.dir ? el("span", { cls: "tk-prog-chip " + S.dir, text: chipTxt + " " + progWord(S) }) : null]));
+    card.appendChild(el("b", { cls: "tk-prog-n", text: S.recent + "%" }));
+    card.appendChild(el("span", { cls: "tk-prog-sub", text: S.dir ? "최근 " + k3 + "개 평균. 그 앞 " + k3 + "개는 " + S.prev + "%" : "녹음 " + S.n + "개. 방향은 4개부터 보임" }));
+    card.appendChild(progSvg(S, 326, 150, true));
+    card.appendChild(el("p", { cls: "meta tk-prog-leg", text: "작은 점은 녹음 하나, 선은 최근 3개 평균" }));
     if (T.cat === "all") {
       var rows = el("div", { cls: "tk-prog-rows" });
       C.MAIN.forEach(function (x) { var Sx = progSeries(all.filter(function (t) { return C.of(t).main === x[0]; })); if (Sx.n < 2) return;
-        var b = el("button", { type: "button", cls: "tk-prog-row", "aria-label": x[1] + " 분류 보기. 음 맞음 " + Sx.recent + "%" + (Sx.dir ? ", " + progWord(Sx) : "") }, [el("span", { cls: "tk-prog-nm", text: x[1] }), progSvg(Sx, 110, 30, false), el("b", { text: Sx.recent + "%" }), el("span", { cls: "tk-prog-ar " + (Sx.dir || ""), text: Sx.dir === "up" ? "▲" : Sx.dir === "down" ? "▼" : Sx.dir === "flat" ? "■" : "" })]);
+        var b = el("button", { type: "button", cls: "tk-prog-row", "aria-label": x[1] + " 분류 보기. 음 맞음 " + Sx.recent + "%" + (Sx.dir ? ", " + progWord(Sx) : "") }, [
+          el("span", { cls: "tk-prog-nm", text: x[1] }),
+          el("b", { cls: "tk-prog-pc", text: Sx.recent + "%" }),
+          el("span", { cls: "tk-prog-ar " + (Sx.dir || ""), text: Sx.dir === "up" ? "▲ 올라감" : Sx.dir === "down" ? "▼ 내려감" : Sx.dir === "flat" ? "비슷함" : "" }),
+          el("span", { cls: "tk-prog-bar" }, [el("i", { style: "width:" + Math.max(2, Math.min(100, Sx.recent)) + "%" })]),
+          progSvg(Sx, 120, 34, false)]);
         b.addEventListener("click", function () { setCat(x[0]); }); rows.appendChild(b); });
       if (rows.childNodes.length) card.appendChild(rows);
     }
@@ -12116,7 +12157,7 @@ window.ROUTINE_DATA = {
   }
   function metaLine(it) {
     var m = el("span", "meta lib-meta");
-    var bits = (it.level ? ["난이도 " + it.level + (it.levelEst ? " 추정" : "")] : []).concat(it.own ? [srcShort(it), "♩" + it.tempo, it.bars + "마디", it.range, it.seconds ? Math.round(it.seconds) + "초" : ""] : [it.source, it.author, it.page ? it.page + "쪽" : ""]);
+    var bits = (it.level ? ["난이도 " + it.level + (it.levelEst ? " 추정" : "")] : []).concat(it.own ? ["♩" + it.tempo, it.bars + "마디", it.range, it.seconds ? Math.round(it.seconds) + "초" : ""] : [it.author, it.page ? it.page + "쪽" : ""]);
     bits.filter(Boolean).forEach(function (t) { m.appendChild(el("span", "", t)); });
     return m;
   }
@@ -12127,7 +12168,7 @@ window.ROUTINE_DATA = {
     var st = el("span", "st"); (it.inMine ? ["내 자료"] : []).concat(it.swap ? ["루틴 칸"] : []).concat(it.abcEdit ? ["고침"] : []).forEach(function (t) { st.appendChild(el("span", "tag on", t)); });
     if (!st.children.length) st.appendChild(el("span", "tag", it.category || ""));
     h.appendChild(st);
-    h.addEventListener("click", function () { L.open[it.id] = !L.open[it.id]; if (!L.open[it.id]) { if (L.play && L.play.id === it.id) stop(); delete L.eds[it.id]; } render(); });
+    h.addEventListener("click", function () { if ((it.own || it.abc || it.abcEdit) && window.__piece) { window.__piece.open(it); return; } L.open[it.id] = !L.open[it.id]; if (!L.open[it.id]) { if (L.play && L.play.id === it.id) stop(); delete L.eds[it.id]; } render(); });
     c.appendChild(h);
     if (L.open[it.id]) c.appendChild(it.own || it.abc ? bodyOwn(it) : bodyExt(it));
     return c;
@@ -12252,7 +12293,7 @@ window.ROUTINE_DATA = {
   (function () { var mb = $("#libMoreMenu"), tl = $("#libTools"); if (!mb || !tl) return; mb.addEventListener("click", function () { var on = tl.classList.contains("hide"); tl.classList.toggle("hide", !on); mb.setAttribute("aria-expanded", String(on)); }); })();
   $("#libQ").addEventListener("input", function () { clearTimeout(qT); qT = setTimeout(function () { L.f.q = $("#libQ").value.trim(); L.shown = 30; render(); }, 200); });
   window.__libRoutineShow = function () { if (L.routineDirty) { L.routineDirty = false; API.renderRoutine(); } };
-  window.__libApi = { L: L, variant: variant, events: events, play: play, stop: stop, syncRoutine: syncRoutine, render: render };
+  window.__libApi = { L: L, abcOf: function (it) { return shown(baseAbc(it)); }, variant: variant, events: events, play: play, stop: stop, syncRoutine: syncRoutine, render: render };
 
   (async function init() {
     if (!window.claude || !window.claude.use) { $("#libInfo").textContent = "자료를 불러올 수 없음"; return; }
@@ -12307,6 +12348,189 @@ window.ROUTINE_DATA = {
     }, function () { $("#libInfo").textContent = "자료 연결이 끊김. 페이지를 다시 열기"; });
   })();
   window.__libShow = function () { if (L.stale || !$("#libList").children.length) { L.stale = false; render(); } };
+})();
+
+/* 곡 연습 페이지(11-04): 곡 제목을 누르면 열리는 한 화면. 악보에서 드래그로 구간 고르기, 그 구간 듣기와 반복, 메트로놈, 드론, 실시간 음정 */
+(function () {
+  var API = window.__hornApi, SC = window.HornScore, LA = function () { return window.__libApi; };
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function btn(label, cls, on, pressed) { var b = el("button", cls || "btn small", label); b.type = "button"; if (pressed !== undefined) b.setAttribute("aria-pressed", String(!!pressed)); b.addEventListener("click", on); return b; }
+  var NAMES = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+  function noteName(written) { return NAMES[((written % 12) + 12) % 12] + (Math.floor(written / 12) - 1); }
+  var cur = null;
+
+  function close() { if (!cur) return; var c = cur; cur = null; try { c.cleanup(); } catch (e) {} if (c.ov.parentNode) c.ov.parentNode.removeChild(c.ov); document.body.classList.remove("pc-open"); }
+
+  function meterBeats(abc) { var m = /^M:\s*(\d+)\s*\/\s*(\d+)/m.exec(abc || ""); if (!m) return 4; var n = +m[1], d = +m[2]; return d === 8 && n % 3 === 0 ? n / 3 : n; }
+
+  /* YIN 음높이 찾기 (60~1200Hz) */
+  function yin(buf, sr) {
+    var N = buf.length, half = N >> 1, d = new Float32Array(half), rms = 0, i, t;
+    for (i = 0; i < N; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / N); if (rms < 0.01) return null;
+    for (t = 1; t < half; t++) { var s = 0; for (i = 0; i < half; i++) { var x = buf[i] - buf[i + t]; s += x * x; } d[t] = s; }
+    var run = 0, cm = new Float32Array(half); cm[0] = 1;
+    for (t = 1; t < half; t++) { run += d[t]; cm[t] = d[t] * t / (run || 1); }
+    var lo = Math.floor(sr / 1200), hi = Math.min(half - 1, Math.floor(sr / 60)), tau = -1;
+    for (t = Math.max(2, lo); t < hi; t++) { if (cm[t] < 0.12) { while (t + 1 < hi && cm[t + 1] < cm[t]) t++; tau = t; break; } }
+    if (tau < 0) return null;
+    var a = cm[tau - 1], b = cm[tau], c = cm[tau + 1], den = a + c - 2 * b, sh = den ? (a - c) / (2 * den) : 0;
+    return sr / (tau + sh);
+  }
+
+  function open(it) {
+    close();
+    var LAp = LA(); if (!LAp || !SC) return;
+    var L = LAp.L, ac0 = API.ac, abc = LAp.abcOf(it);
+    var ov = el("div", "pc-ov"); ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", it.title);
+    var st = { metro: null, drone: null, mic: null, raf: 0, sel: null, dispose: [] };
+    var head = el("div", "pc-head");
+    head.appendChild(btn("닫기", "btn small", close));
+    var ttl = el("b", "pc-title", it.title); head.appendChild(ttl);
+    ov.appendChild(head);
+    var body = el("div", "pc-body"); ov.appendChild(body);
+
+    /* 악보와 드래그 선택 */
+    var selInfo = el("div", "pc-sel-info");
+    var host = el("div", "pc-score");
+    var ed = SC.editor({ abc: abc, onChange: function () {}, onMsg: function () {} });
+    L.eds[it.id] = ed; host.appendChild(ed.el);
+    var dragOn = true; host.classList.add("pc-drag");
+    body.appendChild(selInfo); body.appendChild(host);
+
+    function bars() { var v = ed.visual(); if (!v) return null; var evs = LAp.events(v), n = 0; evs.forEach(function (e) { if (e.bar + 1 > n) n = e.bar + 1; }); return { v: v, evs: evs, n: n }; }
+    function elsOf(v, e) { try { var x = v.getElementFromChar(e.sc); return x && x.abselem && x.abselem.elemset ? x.abselem.elemset : []; } catch (er) { return []; } }
+    function paintSel() {
+      Array.prototype.forEach.call(host.querySelectorAll(".pc-sel"), function (n) { n.classList.remove("pc-sel"); });
+      var B = bars(); if (!B) return; var r = L.range[it.id];
+      if (!r || (r.from <= 1 && r.to >= B.n)) { selInfo.textContent = B.n > 1 ? "악보를 드래그해 연습할 구간을 고르십시오. 지금은 전체 " + B.n + "마디" : ""; return; }
+      B.evs.forEach(function (e) { if (e.bar + 1 >= r.from && e.bar + 1 <= r.to) elsOf(B.v, e).forEach(function (n) { if (n && n.classList) n.classList.add("pc-sel"); }); });
+      selInfo.textContent = (r.from === r.to ? r.from + "마디" : r.from + "-" + r.to + "마디") + " 선택, 모두 " + (r.to - r.from + 1) + "마디";
+    }
+    function barAt(B, x, y) {
+      var best = null, bd = 1e9;
+      B.evs.forEach(function (e) { elsOf(B.v, e).forEach(function (n) { if (!n || !n.getBoundingClientRect) return; var q = n.getBoundingClientRect(); if (!q.width && !q.height) return;
+        var dx = x < q.left ? q.left - x : x > q.right ? x - q.right : 0, dy = y < q.top ? q.top - y : y > q.bottom ? y - q.bottom : 0, dd = dx + 2.5 * dy; if (dd < bd) { bd = dd; best = e.bar + 1; } }); });
+      return best;
+    }
+    var anchor = null;
+    host.addEventListener("pointerdown", function (ev) {
+      if (!dragOn) return; var B = bars(); if (!B || B.n < 1) return; var b = barAt(B, ev.clientX, ev.clientY); if (b == null) return;
+      anchor = b; stopPlay(); L.range[it.id] = { from: b, to: b }; paintSel(); try { host.setPointerCapture(ev.pointerId); } catch (e) {} ev.preventDefault();
+    });
+    host.addEventListener("pointermove", function (ev) {
+      if (anchor == null) return; var B = bars(); if (!B) return; var b = barAt(B, ev.clientX, ev.clientY); if (b == null) return;
+      L.range[it.id] = { from: Math.min(anchor, b), to: Math.max(anchor, b) }; paintSel();
+    });
+    function endDrag() { anchor = null; }
+    host.addEventListener("pointerup", endDrag); host.addEventListener("pointercancel", endDrag);
+
+    /* 듣기, 템포, 반복 */
+    var ctl = el("div", "pc-row");
+    var pb = btn("듣기", "btn small primary", function () { LAp.play(it, pb); }, false);
+    function stopPlay() { if (L.play && L.play.id === it.id) LAp.stop(); }
+    var lp = btn("반복", "btn small", function () { L.loop[it.id] = !L.loop[it.id]; lp.setAttribute("aria-pressed", String(!!L.loop[it.id])); }, !!L.loop[it.id]);
+    var all = btn("전체", "btn small", function () { stopPlay(); delete L.range[it.id]; paintSel(); });
+    var tempo = L.tempo[it.id] || it.tempo || 72;
+    var tIn = el("input", "lib-num"); tIn.type = "number"; tIn.min = 30; tIn.max = 220; tIn.value = tempo; tIn.setAttribute("aria-label", "템포");
+    function setTempo(v) { v = Math.max(30, Math.min(220, Math.round(v) || 72)); tIn.value = v; L.tempo[it.id] = v; }
+    setTempo(tempo); tIn.addEventListener("change", function () { setTempo(+tIn.value); });
+    var tm = btn("-", "btn small", function () { setTempo(+tIn.value - 2); }), tp = btn("+", "btn small", function () { setTempo(+tIn.value + 2); });
+    tm.setAttribute("aria-label", "템포 낮추기"); tp.setAttribute("aria-label", "템포 높이기");
+    var tl = el("label", "meta lib-lab", "♩"); tl.appendChild(tIn);
+    var dr = btn("드래그 선택", "btn small", function () { dragOn = !dragOn; dr.setAttribute("aria-pressed", String(dragOn)); host.classList.toggle("pc-drag", dragOn); }, true);
+    dr.setAttribute("aria-label", "드래그로 구간 고르기. 끄면 화면을 밀어 넘길 수 있음");
+    [pb, lp, all, tm, tl, tp, dr].forEach(function (x) { ctl.appendChild(x); });
+    body.appendChild(ctl);
+
+    /* 메트로놈 */
+    var mrow = el("div", "pc-row"), mb = btn("메트로놈", "btn small", function () { if (st.metro) stopMetro(); else startMetro(); }, false);
+    var beats = meterBeats(abc), bt = el("span", "meta", beats + "박"); 
+    function startMetro() {
+      var c = ac0(), nextT = c.currentTime + 0.1, k = 0, m = { timer: 0 }; st.metro = m; mb.setAttribute("aria-pressed", "true"); if (API.checkSound) API.checkSound();
+      function sched() { var spb = 60 / (+tIn.value || 72); while (nextT < c.currentTime + 0.25) { var o = c.createOscillator(), g = c.createGain(), first = k % beats === 0; o.type = "sine"; o.frequency.value = first ? 1760 : 1180;
+        g.gain.setValueAtTime(0.0001, nextT); g.gain.linearRampToValueAtTime(first ? 0.34 : 0.22, nextT + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, nextT + 0.05); o.connect(g); g.connect(API.bus ? API.bus() : c.destination); o.start(nextT); o.stop(nextT + 0.07); nextT += spb; k++; } }
+      sched(); m.timer = setInterval(sched, 60);
+    }
+    function stopMetro() { if (st.metro) { clearInterval(st.metro.timer); st.metro = null; } mb.setAttribute("aria-pressed", "false"); }
+    mrow.appendChild(mb); mrow.appendChild(bt); body.appendChild(mrow);
+
+    /* 드론: 악보 음 이름 기준(실음은 호른 F 기준 5도 아래, 앱 다른 곳과 같음) */
+    var drow = el("div", "pc-row"), dlab = el("span", "meta", "드론"), dch = el("div", "chips pc-chips"), droot = null;
+    function stopDrone() { if (st.drone) { try { st.drone.o.stop(); } catch (e) {} st.drone = null; } Array.prototype.forEach.call(dch.children, function (b) { b.setAttribute("aria-pressed", "false"); }); droot = null; }
+    function startDrone(pc, b) {
+      stopDrone(); var c = ac0(), written = 60 + pc, df = 442 * Math.pow(2, (written - 7 - 69) / 12), o = c.createOscillator(), g = c.createGain(), lpf = c.createBiquadFilter();
+      o.setPeriodicWave(API.hornWave(c, df)); o.frequency.value = df; lpf.type = "lowpass"; lpf.frequency.value = Math.max(1400, df * 14);
+      g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(0.1 * (API.lowBoost ? API.lowBoost(df) : 1), c.currentTime + 0.4);
+      o.connect(lpf); lpf.connect(g); g.connect(API.bus ? API.bus() : c.destination); o.start(); if (API.checkSound) API.checkSound();
+      st.drone = { o: o }; droot = pc; b.setAttribute("aria-pressed", "true");
+    }
+    NAMES.forEach(function (n, pc) { var b = btn(n, "chip sm", function () { if (droot === pc) stopDrone(); else startDrone(pc, b); }, false); b.setAttribute("aria-label", "드론 " + n); dch.appendChild(b); });
+    drow.appendChild(dlab); drow.appendChild(dch); body.appendChild(drow);
+
+    /* 실시간 음정 */
+    var prow = el("div", "pc-row"), pbtn = btn("실시간 음정", "btn small", function () { if (st.mic) stopMic(); else startMic(); }, false);
+    var readout = el("div", "pc-read"), big = el("b", "pc-note", "-"), cents = el("span", "meta", ""), cv = el("canvas", "pc-trace"); cv.width = 600; cv.height = 140; cv.setAttribute("role", "img"); cv.setAttribute("aria-label", "음정 흔적. 가운데 선이 맞는 음정");
+    readout.appendChild(big); readout.appendChild(cents);
+    var trace = [], msg = el("span", "meta");
+    function draw() {
+      var g = cv.getContext("2d"), W = cv.width, H = cv.height, css = getComputedStyle(document.documentElement); g.clearRect(0, 0, W, H);
+      g.fillStyle = css.getPropertyValue("--fill") || "#eee"; g.fillRect(0, 0, W, H);
+      var mid = H / 2, k = H / 100; g.fillStyle = "rgba(60,196,124,.16)"; g.fillRect(0, mid - 10 * k, W, 20 * k);
+      g.strokeStyle = css.getPropertyValue("--line") || "#999"; g.lineWidth = 1; g.beginPath(); g.moveTo(0, mid); g.lineTo(W, mid); g.stroke();
+      g.strokeStyle = css.getPropertyValue("--accent") || "#c80"; g.lineWidth = 3; g.lineJoin = "round"; var pen = false; g.beginPath();
+      trace.forEach(function (c, i) { if (c == null) { pen = false; return; } var x = i / 300 * W, y = mid - Math.max(-50, Math.min(50, c)) * k; if (!pen) { g.moveTo(x, y); pen = true; } else g.lineTo(x, y); }); g.stroke();
+    }
+    async function startMic() {
+      try {
+        window.__hornRec = true; if (API.session) API.session("play-and-record");
+        var stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+        var c = ac0(); if (c.state !== "running") try { await c.resume(); } catch (e) {}
+        var src = c.createMediaStreamSource(stream), an = c.createAnalyser(); an.fftSize = 4096; src.connect(an);
+        var buf = new Float32Array(2048), M = { stream: stream, src: src }; st.mic = M; pbtn.setAttribute("aria-pressed", "true"); msg.textContent = ""; trace = [];
+        (function loop() { if (st.mic !== M) return; an.getFloatTimeDomainData(buf); var f = yin(buf, c.sampleRate), cs = null;
+          if (f) { var midi = 69 + 12 * Math.log(f / 442) / Math.LN2, r = Math.round(midi); cs = Math.round((midi - r) * 100); big.textContent = noteName(r + 7); cents.textContent = (cs > 0 ? "+" : "") + cs + "센트"; }
+          else { big.textContent = "-"; cents.textContent = ""; }
+          trace.push(cs); if (trace.length > 300) trace.shift(); draw(); st.raf = requestAnimationFrame(loop); })();
+      } catch (e) { msg.textContent = "마이크를 열지 못함. 브라우저 설정에서 마이크를 허용하십시오"; stopMic(); }
+    }
+    function stopMic() {
+      var M = st.mic; st.mic = null; cancelAnimationFrame(st.raf); pbtn.setAttribute("aria-pressed", "false");
+      if (M) { try { M.src.disconnect(); } catch (e) {} try { M.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }
+      window.__hornRec = false; if (API.session) API.session("playback");
+    }
+    prow.appendChild(pbtn); prow.appendChild(readout); prow.appendChild(msg); body.appendChild(prow); body.appendChild(cv); draw();
+
+    /* 자료 설정으로 */
+    var more = el("div", "pc-row"); more.appendChild(btn("이 곡 설정(루틴에 넣기, 난이도)", "btn small", function () { close(); L.open[it.id] = true; LAp.render(); }));
+    body.appendChild(more);
+
+    cur = { ov: ov, cleanup: function () { stopMetro(); stopDrone(); stopMic(); stopPlay(); if (!L.open[it.id]) delete L.eds[it.id]; document.removeEventListener("keydown", onKey); } };
+    function onKey(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(ov); document.body.classList.add("pc-open"); ov.scrollTop = 0;
+    setTimeout(paintSel, 80);
+  }
+
+  /* 곡 고르기: 루틴 화면에서 바로 찾기 */
+  function pick() {
+    var LAp = LA(); if (!LAp) return; var L = LAp.L;
+    var ov = el("div", "pc-ov"); ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "곡 고르기");
+    var head = el("div", "pc-head"); head.appendChild(btn("닫기", "btn small", function () { ov.remove(); document.body.classList.remove("pc-open"); })); head.appendChild(el("b", "pc-title", "곡 하나 골라 구간 연습")); ov.appendChild(head);
+    var body = el("div", "pc-body"), q = el("input", "pc-q"); q.type = "search"; q.placeholder = "곡 이름이나 작곡가"; q.setAttribute("aria-label", "곡 검색"); body.appendChild(q);
+    var list = el("div", "pc-list"); body.appendChild(list); ov.appendChild(body);
+    function paint() {
+      list.innerHTML = ""; var s = q.value.trim().toLowerCase();
+      var hits = L.list.filter(function (it) { return (it.abc || it.abcEdit) && !it.hidden && (!s || (it.title + " " + (it.source || "")).toLowerCase().indexOf(s) >= 0); });
+      if (!hits.length) { list.appendChild(el("p", "meta", L.list.length ? "맞는 자료가 없음" : "자료가 아직 없음")); return; }
+      hits.slice(0, 60).forEach(function (it) { var b = el("button", "pc-item"); b.type = "button"; b.appendChild(el("b", "", it.title)); b.appendChild(el("span", "meta", [it.category, it.bars ? it.bars + "마디" : ""].filter(Boolean).join(", ")));
+        b.addEventListener("click", function () { ov.remove(); document.body.classList.remove("pc-open"); open(it); }); list.appendChild(b); });
+      if (hits.length > 60) list.appendChild(el("p", "meta", "위 60개만 보임. 검색으로 좁히십시오"));
+    }
+    q.addEventListener("input", paint); paint(); document.body.appendChild(ov); document.body.classList.add("pc-open"); setTimeout(function () { try { q.focus(); } catch (e) {} }, 50);
+  }
+
+  window.__piece = { open: open, close: close, pick: pick };
+  var eb = document.getElementById("pieceOpenBtn"); if (eb) eb.addEventListener("click", pick);
 })();
 
 </script>
