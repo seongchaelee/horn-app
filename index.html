@@ -1399,7 +1399,7 @@ nav.tabs button[aria-current="page"]{color:var(--text);font-weight:700}
 :root[data-theme="dark"]{--bad:#E5484D}
 :root[data-theme="dark"] .ng-bar i:nth-child(3){color:#0E1420}
 /* [v56 비율 괄호] 백분율 (성공/시도)에서 괄호는 작게(사용자 지시 11-01) */
-.frac{font-size:.76em;font-weight:500;letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.frac{font-size:max(12px,.8em);font-weight:500;letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap}
 b .frac,strong .frac{font-weight:600}
 .hfl{display:inline!important;margin:0 -.2em 0 -.3em!important;padding:0!important}
 .hflw,.frac{display:inline!important;white-space:nowrap}
@@ -1612,7 +1612,7 @@ nav.tabs button[aria-current="page"]{background:var(--card)!important;border-col
   --f-num:"HornSym","Inter Tight","IBM Plex Sans KR",-apple-system,sans-serif;
   --font:var(--f-ui); --font-num:var(--f-num);
   --bg:#FFFFFF; --card:#FFFFFF; --fill:#F2F4F6; --sunk:#F2F4F6; --raise:#FFFFFF; --line:#E5E8EB; --elev:#FFFFFF;
-  --text:#191F28; --text2:#6B7684; --text3:#8B95A1;
+  --text:#191F28; --text2:#596473; --text3:#5F6A78;
   --accent:#097575; --accent2:#097575; --on-accent:#FFFFFF; --accent-soft:#EDF8F8; --on-soft:#076565; --accent-press:#076565;
   --grad:#097575; --cta:#097575; --on-cta:#FFFFFF; --cta-press:#076565;
   --good:#097575; --warn:#B86A12; --bad:#D22030; --fix:#C4521B;
@@ -1623,7 +1623,7 @@ nav.tabs button[aria-current="page"]{background:var(--card)!important;border-col
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111316; --card:#111316; --fill:#1E2126; --sunk:#1E2126; --raise:#1E2126; --line:#2A2E35; --elev:#1E2126;
-  --text:#F2F4F6; --text2:#A2ABB7; --text3:#7E8794;
+  --text:#F2F4F6; --text2:#A2ABB7; --text3:#939CA8;
   --accent:#3FB8AC; --accent2:#3FB8AC; --on-accent:#FFFFFF; --accent-soft:#16302E; --on-soft:#9FE0D9; --accent-press:#2A9D92;
   --grad:#1F8379; --cta:#1F8379; --cta-press:#196C64;
   --good:#3FB8AC; --warn:#E3A04F; --bad:#F0616D; --fix:#EE8A55;
@@ -1631,7 +1631,7 @@ nav.tabs button[aria-current="page"]{background:var(--card)!important;border-col
 }}
 :root[data-theme="dark"]{
   --bg:#111316; --card:#111316; --fill:#1E2126; --sunk:#1E2126; --raise:#1E2126; --line:#2A2E35; --elev:#1E2126;
-  --text:#F2F4F6; --text2:#A2ABB7; --text3:#7E8794;
+  --text:#F2F4F6; --text2:#A2ABB7; --text3:#939CA8;
   --accent:#3FB8AC; --accent2:#3FB8AC; --on-accent:#FFFFFF; --accent-soft:#16302E; --on-soft:#9FE0D9; --accent-press:#2A9D92;
   --grad:#1F8379; --cta:#1F8379; --cta-press:#196C64;
   --good:#3FB8AC; --warn:#E3A04F; --bad:#F0616D; --fix:#EE8A55;
@@ -1766,7 +1766,17 @@ svg text,svg tspan{font-family:var(--f-ui)!important}
 #blocks{overflow-x:clip}
 body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40px + env(safe-area-inset-bottom,0px))!important}
 .rv-wl{margin:4px 0 0;padding-left:18px}.rv-wl li{margin:8px 0}.rv-wl .meta{display:block;margin:2px 0 0}.onb-ov{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}body.onb-open{overflow:hidden}.onb-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px}.onb-h{margin:0;font-size:22px;line-height:1.35}.onb-s{margin:0;color:var(--muted,inherit);opacity:.8}.onb-ch{gap:8px;flex-wrap:wrap;overflow:visible}.onb-ch .chip{padding:10px 16px;font-size:16px}.onb-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.onb-skip{margin-left:auto}.onb-grp{display:flex;flex-direction:column;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.onb-gt{font-size:16px}.onb-card{display:flex;flex-direction:column;gap:10px}.onb-r{display:flex;align-items:center;gap:12px;min-height:44px;flex-wrap:wrap}.onb-r .wk-k{min-width:72px}.onb-x{align-self:flex-start}.nr-c{border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:4px}.nr-t{font-size:16px}.nr-b{display:inline-block;padding:1px 8px;border:1px solid var(--line);border-radius:10px;font-size:13px;margin-right:6px}.nr-ov{align-items:flex-start}.nr-box{max-width:560px;width:100%;display:flex;flex-direction:column;gap:10px}.nr-top{display:flex;gap:8px;align-items:center;justify-content:space-between}.nr-a{display:block}.nr-sel{font-size:15px;padding:6px}.nr-box .chips{flex-wrap:wrap;overflow:visible}
-#setupView>#setupCta{order:99}#setupView .sg-row .sg-pick{background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--text2);font-weight:600}#setupView .sg-row.first .sg-pick{display:none!important}#setupView>#todayCfg{order:-30}.today-cfg{display:flex;flex-direction:column;gap:4px;padding:12px 14px}.today-cfg .chips{gap:6px;margin-bottom:6px}.today-cfg .chip.sm{min-height:36px;padding:0 12px}
+#setupView.custom .cfg-time,#setupView.custom #suggestBox .sg-row{display:none!important}#setupView>#setupCta{order:99}#setupView .sg-row .sg-pick{background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--text2);font-weight:600}#setupView .sg-row.first .sg-pick{display:none!important}#setupView>#todayCfg{order:-30}.today-cfg{display:flex;flex-direction:column;gap:4px;padding:12px 14px}.today-cfg .chips{gap:6px;margin-bottom:6px}.today-cfg .chip.sm{min-height:36px;padding:0 12px}
+.tk-prog{display:flex;flex-direction:column;gap:6px}.tk-prog-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.tk-prog-n{font-size:var(--fs-title,28px);letter-spacing:-.02em}
+.tk-prog-say{font-weight:600;color:var(--text2)}.tk-prog-say.up{color:var(--accent)}.tk-prog-say.down{color:var(--text)}
+.tk-prog-svg{width:100%;height:auto;display:block}.tk-prog-grid{stroke:var(--line);stroke-width:1}.tk-prog-ax{fill:var(--text2);font-size:12px}
+.tk-prog-line{stroke:var(--accent);stroke-width:2;stroke-linejoin:round}.tk-prog-dot{fill:var(--card);stroke:var(--text2);stroke-width:1.5}.tk-prog-dot.last{fill:var(--accent);stroke:var(--accent)}
+.tk-prog-leg{margin:0}.tk-prog-rows{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:4px}
+.tk-prog-row{display:grid;grid-template-columns:64px 1fr 44px 20px;align-items:center;gap:8px;min-height:44px;border:0;background:none;padding:2px 0;color:var(--text);font:inherit;text-align:left;cursor:pointer}.tk-prog-row b{text-align:right}.tk-prog-ar.up{color:var(--accent)}
+.sw,#hrmExplore{position:relative}.sw::after{content:"";position:absolute;left:-4px;right:-4px;top:-7px;bottom:-7px}#hrmExplore{min-height:44px}
+.wk-cell[aria-pressed="true"] .wk-dow,.wk-cell[aria-pressed="true"] .wk-key{color:inherit!important}
+#setupView .sg-row.first.unsel{opacity:.72}#setupView .sg-row.first.unsel .sg-pick{display:flex!important;width:auto;justify-self:start;height:40px;padding:0 16px;background:none;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--line);font-size:15px;font-weight:600;border-radius:12px}#setupView .sg-row.first.unsel .sg-tx{margin-bottom:12px}#setupView .sg-row[aria-pressed="true"]:not(.first){box-shadow:inset 0 0 0 2px var(--accent);border-radius:12px}
+.chips{gap:8px!important}.wk-plan{gap:8px!important}.today-cfg .chips{gap:8px!important}
 </style>
 </head>
 <body>
@@ -7018,7 +7028,7 @@ window.ROUTINE_DATA = {
     c.appendChild(ol);
     c.appendChild(el("p", "meta", ""));
     // 이 화면의 주 버튼 하나: 아래에 붙는 독(show에서 카드 밖으로 옮김)
-    var st = el("button", "btn primary", LEN + "분 고음 세션 시작하기"); st.type = "button"; st.id = "hrmStart";
+    var st = el("button", "btn primary", LEN + "분 고음 시작"); st.type = "button"; st.id = "hrmStart";
     st.addEventListener("click", function () { if (typeof G.__hrmStart === "function") G.__hrmStart(LEN); });
     c.appendChild(st);
     return c;
@@ -10388,6 +10398,50 @@ window.ROUTINE_DATA = {
     var c = C.of(t); if (c.main !== T.cat) return false;
     return !T.sub || (T.sub === "-" ? !c.sub : c.sub === T.sub);
   }
+  /* 분류별 발전 그래프: 녹음마다 '음 맞음'(±10센트 안 시간)을 날짜순으로 점으로 찍고, 최근 묶음과 그 앞 묶음을 비교해 방향을 한 줄로. 자기 기준 비교만 씀 */
+  function progSeries(list) {
+    var L = list.filter(function (t) { return t.summary && t.summary.inTune != null && !isRef(t); }).sort(function (a, b) { return (dayOf(a) + " " + (a.recTime || "")).localeCompare(dayOf(b) + " " + (b.recTime || "")) || String(a.createdAt || "").localeCompare(String(b.createdAt || "")); });
+    var v = L.map(function (t) { return t.summary.inTune; }), n = v.length, k = Math.min(3, Math.floor(n / 2));
+    var mean = function (a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; };
+    var out = { v: v, n: n, days: L.map(dayOf) };
+    if (n >= 2) { out.recent = Math.round(mean(v.slice(-k))); if (n >= 4) { out.prev = Math.round(mean(v.slice(-2 * k, -k))); out.delta = out.recent - out.prev; } }
+    out.dir = out.delta == null ? "" : out.delta >= 5 ? "up" : out.delta <= -5 ? "down" : "flat";
+    return out;
+  }
+  function progSvg(S, W, H, big) {
+    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), L = big ? 26 : 2, R = 6, Tp = 6, B = 6, n = S.v.length;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("class", "tk-prog-svg"); svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "음 맞음 " + S.v.join("%, ") + "%");
+    function add(tag, at, txt) { var e = document.createElementNS(ns, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; }
+    var X = function (i) { return n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1); }, Y = function (p) { return Tp + (H - Tp - B) * (1 - p / 100); };
+    if (big) [0, 50, 100].forEach(function (g) { add("line", { x1: L, x2: W - R, y1: Y(g), y2: Y(g), "class": "tk-prog-grid" }); add("text", { x: L - 4, y: Y(g) + 3, "text-anchor": "end", "class": "tk-prog-ax" }, g + "%"); });
+    var ma = S.v.map(function (_, i) { var a = S.v.slice(Math.max(0, i - 2), i + 1); return a.reduce(function (x, y) { return x + y; }, 0) / a.length; });
+    add("polyline", { points: ma.map(function (p, i) { return X(i).toFixed(1) + "," + Y(p).toFixed(1); }).join(" "), fill: "none", "class": "tk-prog-line" });
+    S.v.forEach(function (p, i) { add("circle", { cx: X(i).toFixed(1), cy: Y(p).toFixed(1), r: big ? 3.5 : 2.5, "class": "tk-prog-dot" + (i === n - 1 ? " last" : "") }); });
+    return svg;
+  }
+  function progWord(S) { return S.dir === "up" ? "올라가는 중" : S.dir === "down" ? "내려가는 중" : S.dir === "flat" ? "비슷함" : ""; }
+  function progCard(all) {
+    var host = document.getElementById("tkProg"); if (!host) { host = document.createElement("div"); host.id = "tkProg"; var lst = $("#takeList"); lst.parentNode.insertBefore(host, lst); }
+    host.innerHTML = ""; var hide = T.cat === "참고" || T.cat === "루틴" || T.cat === "todo"; host.classList.toggle("hide", hide); if (hide) return;
+    var S = progSeries(all.filter(inCat)), card = el("div", { cls: "card tk-prog" });
+    var name = T.cat === "all" ? "전체" : (C.MAIN.filter(function (x) { return x[0] === T.cat; })[0] || [0, T.cat])[1];
+    if (S.n < 2) { card.appendChild(el("p", { cls: "meta", text: name + ": 소리를 분석한 녹음이 둘 이상 쌓이면 발전 그래프가 보입니다" })); host.appendChild(card); return; }
+    var head = el("div", { cls: "tk-prog-head" }, [el("span", { cls: "meta", text: name + " 음 맞음(±10센트 안 시간)" }), el("b", { cls: "tk-prog-n", text: S.recent + "%" })]);
+    card.appendChild(head);
+    var say = S.dir ? "앞 " + Math.min(3, Math.floor(S.n / 2)) + "개 평균 " + S.prev + "%에서 " + (S.delta > 0 ? "+" : "") + S.delta + "%p, " + progWord(S) : "녹음 " + S.n + "개. 방향은 4개부터 보입니다";
+    var sp = el("span", { cls: "tk-prog-say " + (S.dir || ""), text: (S.dir === "up" ? "▲ " : S.dir === "down" ? "▼ " : S.dir === "flat" ? "■ " : "") + say }); card.appendChild(sp);
+    card.appendChild(progSvg(S, 326, 96, true));
+    card.appendChild(el("p", { cls: "meta tk-prog-leg", text: "점: 녹음 한 개. 선: 최근 3개 평균. 가장 오른쪽 점이 가장 최근" + (S.days[0] ? " (" + S.days[0].slice(5).replace("-", "월 ") + "일부터)" : "") }));
+    if (T.cat === "all") {
+      var rows = el("div", { cls: "tk-prog-rows" });
+      C.MAIN.forEach(function (x) { var Sx = progSeries(all.filter(function (t) { return C.of(t).main === x[0]; })); if (Sx.n < 2) return;
+        var b = el("button", { type: "button", cls: "tk-prog-row", "aria-label": x[1] + " 분류 보기. 음 맞음 " + Sx.recent + "%" + (Sx.dir ? ", " + progWord(Sx) : "") }, [el("span", { cls: "tk-prog-nm", text: x[1] }), progSvg(Sx, 110, 30, false), el("b", { text: Sx.recent + "%" }), el("span", { cls: "tk-prog-ar " + (Sx.dir || ""), text: Sx.dir === "up" ? "▲" : Sx.dir === "down" ? "▼" : Sx.dir === "flat" ? "■" : "" })]);
+        b.addEventListener("click", function () { setCat(x[0]); }); rows.appendChild(b); });
+      if (rows.childNodes.length) card.appendChild(rows);
+    }
+    host.appendChild(card);
+  }
   function render() {
     if (T.detail && $("#v-analyze").classList.contains("hide")) T.detail = null;
     if (T.detail) drawDetail();
@@ -10421,6 +10475,7 @@ window.ROUTINE_DATA = {
     $("#benchBox").classList.toggle("hide", T.cat !== "참고");
     $("#sessBox").classList.toggle("hide", T.cat !== "루틴"); if (T.sessMsg) { $("#sessMsg").textContent = T.sessMsg; }
     var shown = all.filter(inCat);
+    try { progCard(all); } catch (e) {}
     var nOld = (T.drills || []).filter(function (d) { return !(d.tries || []).some(function (q) { return q && q.audioId; }); }).length; // 소리를 남기기 전의 루틴 기록
     if (T.cat === "루틴" && nOld) box.appendChild(el("div", { cls: "tk-note" }, [el("span", { text: "소리 없이 잰 루틴 연습 " + nOld + "개는 리뷰에서 확인" }), el("button", { type: "button", cls: "btn small", text: "리뷰", onclick: function () { API.go("review"); } })]));
     selBtn();
@@ -12054,7 +12109,8 @@ window.ROUTINE_DATA = {
     if (L.play && !L.open[L.play.id]) stop();
     box.innerHTML = "";
     var hits = L.list.filter(match);
-    $("#libInfo").textContent = hits.length + "개" + (hits.length !== L.list.length ? " (전체 " + L.list.length + ")" : "");
+    var nSrc = L.list.filter(function (x) { return x.source; }).length;
+    $("#libInfo").textContent = hits.length + "개" + (hits.length !== L.list.length ? " (전체 " + L.list.length + ")" : "") + ". 출처 표기 " + Math.round(100 * nSrc / Math.max(1, L.list.length)) + "% (" + nSrc + "/" + L.list.length + "). 자료 기준일 11월 4일";
     hits.slice(0, L.shown).forEach(function (it) { box.appendChild(card(it)); });
     $("#libMore").classList.toggle("hide", hits.length <= L.shown);
   }
@@ -13351,7 +13407,8 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
       else if (sgI >= 3) m.appendChild(el("span", "", sgI >= 5 ? "2-3일에 한 번, 첫 시도만" : "오늘 첫 시도 한 번부터"));
       var hurt = hurtToday(), hiOff = !hurt && (C.x.hi || 0) >= 79 && hiRestCached();
       if (hurt || hiOff) { m.innerHTML = ""; m.appendChild(el("span", "", hurt ? "오늘은 엑섭 쉼" : "오늘은 고음 쉬는 날. G5 위가 있어 내일")); row.disabled = true; row.classList.add("off"); }
-      row.appendChild(m); row.appendChild(el("span", "sg-go", hurt || hiOff ? "쉼" : "시작")); row.addEventListener("click", function () { startRev(t); }); b.appendChild(row);
+      var rk = "rev:" + tKey(t), rOn = window.__sgSel === rk && !(hurt || hiOff); row.setAttribute("aria-pressed", String(rOn)); if (rOn) window.__sgCur = { len: "", p: "엑섭 연습", t: "엑섭 연습", run: function () { startRev(t); } };
+      row.appendChild(m); row.appendChild(el("span", "sg-go sg-pick", hurt || hiOff ? "쉼" : rOn ? "선택됨" : "선택")); row.addEventListener("click", function () { if (hurt || hiOff) return; window.__sgSel = rk; renderSuggest(); }); b.appendChild(row);
       // 표준 엑섭 목록(IHS)에 같은 곡이 있으면 참고 녹음 링크
       // IHS 녹음은 그 엑섭 마디만 담고 있어서, 내 파트가 그 엑섭 파트에 있고 마디가 겹칠 때만 링크(사용자 설명 11-01: Horn III는 첫머리를 같이 불지 않음)
       var IH = window.HornIHS, w0 = IH && IH.match(C.x.title), myPt = (/Horn ([IVX]+)/.exec(C.x.title || "") || [])[1];
@@ -13721,7 +13778,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     mkLabel();
   }
   // 시작 버튼 이름에 무엇이 시작되는지(시간)를 씀
-  function mkLabel() { var b = $("#makeBtn"); if (!b || b.disabled) return; var len = API.S.len; b.textContent = /^\d+$/.test(len) ? len + "분 연습 시작" : "연습 시작"; }
+  function mkLabel() { var b = $("#makeBtn"); if (!b || b.disabled) return; var len = API.S.len; var cu = false; try { cu = localStorage.getItem("horn-proto-custom") === "1"; } catch (e) {} b.textContent = !cu && window.__sgCur ? (window.__sgCur.len ? window.__sgCur.len + "분 " : "") + window.__sgCur.p + " 시작" : /^\d+$/.test(len) ? len + "분 연습 시작" : "연습 시작"; }
   (function () { var lc = $("#lenChips"); if (lc) lc.addEventListener("click", function () { setTimeout(mkLabel, 0); }); })();
   function tbl(head, rows, cls) {
     var t = el("table", "ptbl"), hr = el("tr"); head.forEach(function (h) { hr.appendChild(el("th", "", h)); }); t.appendChild(hr);
@@ -13754,6 +13811,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     return out.slice(0, 3);
   }
   function startWith(s) {
+    if (s && s.run) { s.run(); return; }
     if (window.__ev) window.__ev("suggest_pick", { len: s.len, p: s.p });
     if (s.p === "고음" && window.__hrmStart) { window.__hrmStart(s.len); return; }
     API.S.len = s.len; U.purpose = s.p; try { localStorage.setItem("horn-proto-len", s.len); localStorage.setItem("horn-proto-purpose", s.p); } catch (e) {}
@@ -13761,14 +13819,14 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   }
   // 윗단 설정: 악기와 시간을 메인 맨 위에서 고름(사용자가 먼저 정하는 흐름). 악기를 오늘 골랐으면 시작할 때 다시 묻지 않음
   function instOkD(D) { var t = D.type; return !!t && !(t === "내추럴" && !D.crooks.length) && !(t === "싱글" && !D.key) && !(t === "바그너 튜바" && (!D.sub || !D.key)); }
-  function instToday() { try { return localStorage.getItem("horn-proto-inst-date") === today(); } catch (e) { return false; } }
+  function instToday() { return instOkD(instClean(JSON.parse(JSON.stringify(U.inst)))); } // 지난번에 고른 악기가 있으면 그대로 쓰고 다시 묻지 않음(같은 선택을 되풀이해 묻지 않는 원칙)
   function lenPick() { try { var v = JSON.parse(localStorage.getItem("horn-proto-lenpick") || "null"); return v && v.d === today() ? v.l : ""; } catch (e) { return ""; } }
   var cfgD = null;
   function renderCfg(sv, box) {
     var c = document.getElementById("todayCfg"); if (!c) { c = el("div", "card today-cfg"); c.id = "todayCfg"; }
     if (c.parentNode !== sv || c.nextSibling !== box) sv.insertBefore(c, box);
     c.innerHTML = "";
-    var D = cfgD || instClean(JSON.parse(JSON.stringify(U.inst))), shown = !!D.type && (instToday() || !!cfgD);
+    var D = cfgD || instClean(JSON.parse(JSON.stringify(U.inst))), shown = !!D.type;
     function chipRow(title, items, isOn, fn) {
       c.appendChild(el("span", "meta", title)); var w = el("div", "chips"); w.setAttribute("role", "group"); w.setAttribute("aria-label", title);
       items.forEach(function (it) { var lab = Array.isArray(it) ? it[0] : it, v = Array.isArray(it) ? it[1] : it, b = el("button", "chip sm", lab); b.type = "button"; b.setAttribute("aria-pressed", String(isOn(v))); b.addEventListener("click", function () { fn(v); }); w.appendChild(b); });
@@ -13780,9 +13838,10 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     if (t === "싱글") chipRow("싱글 호른 조", INST_KEYS["싱글"], function (v) { return D.key === v; }, function (v) { D.key = v; commit(); });
     if (t === "바그너 튜바") { chipRow("바그너 튜바 종류", ["싱글", "더블"], function (v) { return D.sub === v; }, function (v) { D.sub = v; D.key = v === "더블" ? INST_KEYS["바그너 튜바"]["더블"][0] : ""; commit(); }); if (D.sub) chipRow("조", INST_KEYS["바그너 튜바"][D.sub], function (v) { return D.key === v; }, function (v) { D.key = v; commit(); }); }
     if (t === "내추럴") chipRow("오늘 쓸 크룩 (하나 이상)", GEN.CROOKS.map(function (x) { return [({ C: "C basso", A: "A alto" }[x[0]] || x[0]).replace(/^([A-G])b/, "$1♭"), x[0]]; }), function (v) { return D.crooks.indexOf(v) >= 0; }, function (v) { var i = D.crooks.indexOf(v); if (i >= 0) D.crooks.splice(i, 1); else D.crooks.push(v); commit(); });
-    var lp = lenPick();
-    chipRow("오늘 시간", [["제안대로", ""], ["15분", "15"], ["30분", "30"], ["45분", "45"], ["60분", "60"]], function (v) { return lp === v; }, function (v) { try { localStorage.setItem("horn-proto-lenpick", JSON.stringify({ d: today(), l: v })); } catch (e) {} renderSuggest(); });
-    if (!shown) c.appendChild(el("span", "meta", "악기를 안 고르고 시작하면 그때 묻습니다"));
+    var lp = lenPick(), tn0 = c.childNodes.length;
+    chipRow("오늘 시간", [["제안대로", ""], ["15분", "15"], ["30분", "30"], ["45분", "45"], ["60분", "60"]], function (v) { return lp === v; }, function (v) { try { localStorage.setItem("horn-proto-lenpick", JSON.stringify({ d: today(), l: v })); if (v) { API.S.len = v; localStorage.setItem("horn-proto-len", v); try { API.renderChips(); } catch (e2) {} } } catch (e) {} renderSuggest(); });
+    for (var ti = tn0; ti < c.childNodes.length; ti++) c.childNodes[ti].classList.add("cfg-time");
+    if (!instOkD(D)) c.appendChild(el("span", "meta", "악기를 고르면 다음부터 그대로 씁니다"));
   }
   function renderSuggest() {
     var sv = $("#setupView"); if (!sv) return; var box = document.getElementById("suggestBox");
@@ -13792,18 +13851,20 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     var L = suggestions(), lp0 = lenPick(); if (lp0) L = L.map(function (x) { return x.p === "회복" ? x : Object.assign({}, x, { len: lp0, t: lp0 + "분 " + x.p }); });
     renderCfg(sv, box); if (window.__ev) window.__ev("suggest_show", { ids: L.map(function (x) { return x.len + x.p; }) });
     // 위는 고르기, 아래 고정 버튼은 실행: 제안 줄은 시작 버튼이 아니라 선택 줄. 고른 줄이 크게 보이고, 시작은 맨 아래 버튼 하나뿐
-    var selK = window.__sgSel, si = 0; L.forEach(function (x, i) { if (x.len + x.p === selK) si = i; }); window.__sgCur = L[si];
-    L.forEach(function (s, i) { var on = i === si, b = el("button", "sg-row" + (on ? " first" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", s.t + " 고르기. " + s.why);
+    var selK = window.__sgSel, si = /^(rev:|mock)/.test(selK || "") ? -1 : 0; L.forEach(function (x, i) { if (x.len + x.p === selK) si = i; }); window.__sgCur = si >= 0 ? L[si] : null; window.__sgOther = si < 0;
+    L.forEach(function (s, i) { var on = i === si, hero = si >= 0 ? on : i === 0, b = el("button", "sg-row" + (hero ? " first" : "") + (hero && !on ? " unsel" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", s.t + " 고르기. " + s.why);
       var n = el("span", "sg-n", s.len); n.appendChild(el("i", "", "분")); b.appendChild(n);
       var tx = el("span", "sg-tx"); tx.appendChild(el("b", "", s.p)); tx.appendChild(el("small", "", s.why)); b.appendChild(tx); b.appendChild(el("span", "sg-go sg-pick", on ? "선택됨" : "선택")); b.addEventListener("click", function () { window.__sgSel = s.len + s.p; if (window.__ev) window.__ev("suggest_select", { len: s.len, p: s.p }); renderSuggest(); }); box.appendChild(b); });
     var open = false; try { open = localStorage.getItem("horn-proto-custom") === "1"; } catch (e) {}
     var tg = document.getElementById("sgMore"); if (!tg) { tg = el("button", "sg-more"); tg.id = "sgMore"; tg.type = "button"; tg.textContent = "직접 짜기"; } if (box.nextSibling !== tg) sv.insertBefore(tg, box.nextSibling);
-    function apply() { var setup = sv.querySelector(".card.setup"), cta = $("#setupCta"), mk = $("#makeBtn"); if (setup) setup.classList.toggle("hide", !open); if (cta) cta.classList.remove("hide"); if (mk) mk.textContent = open || !window.__sgCur ? "연습 시작" : window.__sgCur.len + "분 " + window.__sgCur.p + " 시작"; tg.setAttribute("aria-expanded", String(open)); }
+    function apply() { var setup = sv.querySelector(".card.setup"), cta = $("#setupCta"), mk = $("#makeBtn"); if (setup) setup.classList.toggle("hide", !open); if (cta) cta.classList.remove("hide"); sv.classList.toggle("custom", open); if (mk) mk.textContent = open || !window.__sgCur ? "연습 시작" : (window.__sgCur.len ? window.__sgCur.len + "분 " : "") + window.__sgCur.p + " 시작"; tg.setAttribute("aria-expanded", String(open)); }
     tg.onclick = function () { open = !open; try { localStorage.setItem("horn-proto-custom", open ? "1" : "0"); } catch (e) {} apply(); };
     apply();
     renderReady(box, sv);
     renderMock(sv);
     try { renderRev(sv); } catch (e) {}
+    if (window.__sgOther && !window.__sgCur) { window.__sgSel = ""; window.__sgOther = false; renderSuggest(); return; }
+    mkLabel();
     setTimeout(function () { firstInfo(L[0]); }, 0);
   }
   // 첫 제안 설명: 오늘 그 루틴의 블록 수와 조(비평: 남은 날 되풀이 대신 세션 내용). 오늘 세트가 없으면 만들어 둠(시작할 때 그대로 씀)
@@ -13824,8 +13885,9 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     var n = el("span", "sg-n", String(m.minutes)); n.appendChild(el("i", "", "분")); b.appendChild(n);
     var tx = el("span", "sg-tx"); tx.appendChild(el("b", "", "모의 공연" + (n0 ? " " + (n0 + 1) + "회차" : "")));
     tx.appendChild(el("small", "", cs.c.short + " (" + cs.c.part + ") 구간 " + m.mock.n + "개를 순서대로 한 번만")); b.appendChild(tx);
-    b.appendChild(el("span", "sg-go", "시작")); b.setAttribute("aria-label", "모의 공연 시작. " + cs.c.short + " 구간 " + m.mock.n + "개");
-    b.onclick = startMock; if (!old) sv.appendChild(b);
+    var mOn = window.__sgSel === "mock"; b.setAttribute("aria-pressed", String(mOn)); if (mOn) window.__sgCur = { len: String(m.minutes), p: "모의 공연", t: "모의 공연", run: startMock };
+    b.appendChild(el("span", "sg-go sg-pick", mOn ? "선택됨" : "선택")); b.setAttribute("aria-label", "모의 공연 고르기. " + cs.c.short + " 구간 " + m.mock.n + "개");
+    b.onclick = function () { window.__sgSel = "mock"; renderSuggest(); }; if (!old) sv.appendChild(b);
   }
   window.__startWeak = function () { U.purpose = "약점"; try { localStorage.setItem("horn-proto-purpose", "약점"); } catch (e) {} renderPurpose(); if (API.go) API.go("routine"); setMode("run"); };
   /* 공연 구간 준비도: 준비됨 = 목표 템포(100%)로 3번 연속 기준 안(음 90% 이상, 음정 15센트 이하). ux3/journey.md P1-2. 공연 준비 스위치와 상관없이 보여 줌(켜기는 사용자 결정 대기) */
@@ -14043,7 +14105,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
       if (t === "바그너 튜바") box.appendChild(el("p", "meta", "엑섭은 바그너 튜바 악보만 씀. 지금 앱에는 바그너 튜바 엑섭 악보가 없음"));
       var ok = !!t && !(t === "내추럴" && !D.crooks.length) && !(t === "싱글" && !D.key) && !(t === "바그너 튜바" && (!D.sub || !D.key)); var go = $("#instGo"); if (go) { go.disabled = !ok; }
     }
-    function go() { busy($("#makeBtn"), "만드는 중", function () { window.__instPassed = true; try { setMode("run"); } finally { window.__instPassed = false; } }); }
+    function go() { var run = function () { window.__instPassed = true; try { setMode("run"); } finally { window.__instPassed = false; } }, mb = $("#makeBtn"); if (!mb || mb.disabled) run(); else busy(mb, "만드는 중", run); } // 이미 만드는 중이면 그대로 실행
     // 2단계: 연습 설계에 꼭 필요한데 아직 안 정한 것만 묻는다(오늘 입술, 편한 음역, 날짜 미확인 공연). 다 정했으면 건너뜀
     function pend() {
       if (window.__seed && !window.__landingTest) return { body: false, range: false, conc: [], empty: false }; // 시험 페이지는 건너뜀(tflow.js만 봄)
