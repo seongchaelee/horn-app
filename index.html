@@ -181,7 +181,9 @@
   function lastSync() { try { return +localStorage.getItem(SYNC) || 0; } catch (e) { return 0; } }
   function setSync() { try { localStorage.setItem(SYNC, String(Date.now())); } catch (e) {} }
   function ago(t) { if (!t) return __L("아직 동기화 안 했어요","Not synced yet"); var h = (Date.now() - t) / 36e5; return h < 1 ? __L("마지막 동기화 방금","Last synced just now") : h < 24 ? __L("마지막 동기화 ","Last synced ") + Math.floor(h) + __L("시간 전","h ago") : __L("마지막 동기화 ","Last synced ") + Math.floor(h / 24) + __L("일 전","d ago"); }
-  document.addEventListener("DOMContentLoaded", function () {
+  function __saBoot(fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }
+  __saBoot(function () {
+    if (document.getElementById("sa-bak")) return;
     var bar = document.createElement("div");
     bar.id = "sa-bak"; bar.style.cssText = "margin:24px auto 96px;max-width:560px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font:14px var(--f-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif);color:var(--text2,#55585E)";
     var t = document.createElement("span"); t.style.cssText = "flex-basis:100%"; bar.appendChild(t);
@@ -213,13 +215,13 @@
     if (Date.now() - lastSync() > 864e5) {
       var nb = document.createElement("div"); nb.setAttribute("role", "status");
       nb.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:50;display:flex;gap:8px;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;background:var(--fill,#EEEEEA);color:var(--text,#17181A);font:14px var(--f-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif)";
-      var tx = document.createElement("span"); tx.textContent = ago(lastSync()) + __L(". 화면 맨 아래에서 동기화",". Sync from the bottom of the screen"); nb.appendChild(tx);
+      var tx = document.createElement("span"); tx.textContent = ago(lastSync()) + __L(". 화면 맨 아래에서 동기화",". Sync in Settings"); nb.appendChild(tx);
       var x = document.createElement("button"); x.type = "button"; x.textContent = __L("닫기","Close"); x.className = "btn small"; x.addEventListener("click", function () { nb.remove(); }); nb.appendChild(x);
       document.body.appendChild(nb); setTimeout(function () { nb.remove(); }, 12000);
     }
   });
 })();
-</script><script>(function(){var l="en";window.__lang=l;document.documentElement.lang=l;window.__L=function(k,e){return l==="en"?e:k};window.__EN=window.__EN||{};window.__t=function(s){return l==="en"&&window.__EN[s]!==undefined?window.__EN[s]:s};window.__setLang=function(v){try{localStorage.setItem("horn-lang",v)}catch(e){}location.reload()}})();</script>
+</script><script>try{var __th=localStorage.getItem("horn-proto-theme");if(__th)document.documentElement.setAttribute("data-theme",__th);}catch(e){}</script><script>(function(){var l="en";window.__lang=l;document.documentElement.lang=l;window.__L=function(k,e){return l==="en"?e:k};window.__EN=window.__EN||{};window.__t=function(s){return l==="en"&&window.__EN[s]!==undefined?window.__EN[s]:s};window.__setLang=function(v){try{localStorage.setItem("horn-lang",v)}catch(e){}location.reload()}})();</script>
 
 <meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Horn"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-180.png"><link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2044,6 +2046,8 @@ body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40p
 <script>document.write(__L("    <div class=\"rv-top\"><div class=\"chips\" id=\"rvRange\" role=\"group\" aria-label=\"기간\"><\/div><\/div>","    <div class=\"rv-top\"><div class=\"chips\" id=\"rvRange\" role=\"group\" aria-label=\"Period\"><\/div><\/div>"))</script>
     <div id="reviewBody" class="rv-body"></div>
   </section>
+<section class="view hide" id="v-settings"><div id="setBody"></div></section>
+
 </div>
 <script>document.write(__L("<div class=\"pbar hide\" id=\"practiceBar\" role=\"toolbar\" aria-label=\"연습 막대\">","<div class=\"pbar hide\" id=\"practiceBar\" role=\"toolbar\" aria-label=\"Practice bar\">"))</script>
 <script>document.write(__L("  <div class=\"pbar-info\"><span class=\"pbar-ex\" id=\"pbEx\"><\/span><button type=\"button\" class=\"pbar-sess hide\" id=\"pbSess\" aria-label=\"세션 녹음 중\"><i><\/i><span id=\"pbSessT\"><\/span><\/button><button type=\"button\" class=\"pbar-time\" id=\"pbTime\" aria-pressed=\"false\" aria-label=\"시간 멈춤\"><svg class=\"ic-pause\" viewBox=\"0 0 14 14\" fill=\"currentColor\" aria-hidden=\"true\"><rect x=\"3\" y=\"2\" width=\"3\" height=\"10\" rx=\"1\"/><rect x=\"8\" y=\"2\" width=\"3\" height=\"10\" rx=\"1\"/><\/svg><svg class=\"ic-play\" viewBox=\"0 0 14 14\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M4 2.2v9.6l7.6-4.8z\"/><\/svg><span class=\"tx\"><\/span><\/button><\/div>","  <div class=\"pbar-info\"><span class=\"pbar-ex\" id=\"pbEx\"><\/span><button type=\"button\" class=\"pbar-sess hide\" id=\"pbSess\" aria-label=\"Session recording in progress\"><i><\/i><span id=\"pbSessT\"><\/span><\/button><button type=\"button\" class=\"pbar-time\" id=\"pbTime\" aria-pressed=\"false\" aria-label=\"Pause timer\"><svg class=\"ic-pause\" viewBox=\"0 0 14 14\" fill=\"currentColor\" aria-hidden=\"true\"><rect x=\"3\" y=\"2\" width=\"3\" height=\"10\" rx=\"1\"/><rect x=\"8\" y=\"2\" width=\"3\" height=\"10\" rx=\"1\"/><\/svg><svg class=\"ic-play\" viewBox=\"0 0 14 14\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M4 2.2v9.6l7.6-4.8z\"/><\/svg><span class=\"tx\"><\/span><\/button><\/div>"))</script>
@@ -2071,6 +2075,7 @@ body.practice{padding-bottom:calc(var(--pbar-h, 64px) + var(--tab-h, 64px) + 40p
 <script>document.write(__L("  <button type=\"button\" data-v=\"routine\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7.5 21h9L14 3.5h-4z\"/><path d=\"M12 16l4.5-8\"/><path d=\"M8.6 14h6.8\"/><\/svg>오늘<\/button>","  <button type=\"button\" data-v=\"routine\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7.5 21h9L14 3.5h-4z\"/><path d=\"M12 16l4.5-8\"/><path d=\"M8.6 14h6.8\"/><\/svg>Today<\/button>"))</script>
 <script>document.write(__L("  <button type=\"button\" data-v=\"lib\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5.5 3.5h13v17h-13z\"/><path d=\"M8 8h8M8 10.5h8M8 13h8M8 15.5h5\"/><\/svg>연습<\/button>","  <button type=\"button\" data-v=\"lib\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5.5 3.5h13v17h-13z\"/><path d=\"M8 8h8M8 10.5h8M8 13h8M8 15.5h5\"/><\/svg>Practice<\/button>"))</script>
 <script>document.write(__L("  <button type=\"button\" data-v=\"me\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M4.8 20c.9-3.6 3.7-5.4 7.2-5.4s6.3 1.8 7.2 5.4\"/><\/svg><span>나<\/span><\/button>","  <button type=\"button\" data-v=\"me\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8.5\" r=\"3.6\"/><path d=\"M4.8 20c.9-3.6 3.7-5.4 7.2-5.4s6.3 1.8 7.2 5.4\"/><\/svg><span>Me<\/span><\/button>"))</script>
+<button type="button" data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><path d="M14 4.5v5h4v-5zM8 14.5v5h4v-5z"/></svg><span>Settings</span></button>
 </nav>
 
 <script>
@@ -3396,8 +3401,8 @@ Object.assign(window.__EN,{"배음 8분 사다리":"Eighth-note harmonic ladder"
   function ref() { var v = 442; try { v = +localStorage.getItem("horn-ref") || 442; } catch (e) {} return v >= 415 && v <= 466 ? v : 442; }
   function setRef(v) { v = +v; if (!(v >= 415 && v <= 466)) return; try { localStorage.setItem("horn-ref", String(v)); } catch (e) {} }
   function crooks() { var i = gi(); return i.type === "내추럴" && Array.isArray(i.crooks) && i.crooks.length ? i.crooks : (i.type === "내추럴" ? ["F"] : []); }
-  function crook() { var c = ""; try { c = localStorage.getItem("horn-sound-crook") || ""; } catch (e) {} var l = crooks(); return l.indexOf(c) >= 0 ? c : (l[0] || ""); }
-  function setCrook(c) { try { localStorage.setItem("horn-sound-crook", c); } catch (e) {} }
+  function crook() { var c = ""; try { c = localStorage.getItem("horn-proto-crook") || localStorage.getItem("horn-sound-crook") || ""; } catch (e) {} var l = crooks(); return l.indexOf(c) >= 0 ? c : (l[0] || ""); }
+  function setCrook(c) { try { localStorage.setItem("horn-sound-crook", c); localStorage.setItem("horn-proto-crook", c); } catch (e) {} }
   function shift() { var i = gi(); if (i.type === "내추럴") return CR[crook()] != null ? CR[crook()] : 7; if (i.type === "바그너 튜바") { var t = TUBA[i.key]; return t ? t[0] : 14; } return 7; }
   function note() { var i = gi(); if (i.type === "내추럴") { var c = crook(); return __L("내추럴 크룩 ","Natural horn, ") + (CRN[c] || c) + __L(": 실음은 악보보다 "," crook: sounds ") + shift() + __L("반음 아래"," semitones below written") + ((c === "H") ? __L(" (확인 필요)"," (Needs checking)") : ""); } if (i.type === "바그너 튜바") { var t = TUBA[i.key] || TUBA["B♭ tenor"]; return __L("바그너 튜바 ","Wagner tuba ") + (i.key || "") + __L(": 실음은 악보보다 ",": sounds ") + t[1] + (t[2] ? " (" + t[2] + ")" : ""); } return ""; }
   window.__sound = { ref: ref, setRef: setRef, shift: shift, note: note, crook: crook, crooks: crooks, setCrook: setCrook, CROOK_NAME: function (c) { return CRN[c] || c; } };
@@ -4567,6 +4572,7 @@ window.ROUTINE_DATA = {
     var NSEL = nat && o.crooks && o.crooks.length ? NATORD.filter(function (c) { return o.crooks.indexOf(c) >= 0; }) : [], NBASE = nat ? (pu.band[1] <= 2 ? NATORD.slice(0, 5) : NATORD) : null, NPOOL = nat ? (NSEL.length ? NSEL : NBASE) : null;
     if (nat && o.natOnly) pu.blocks = pu.blocks.filter(function (b) { return b[0] !== "breath" && b[0] !== "buzz"; });
     var natCr = nat ? (o.crook || NPOOL[day % NPOOL.length]) : ""; // 내추럴 호른 크룩: Domnich Eb부터, 쉬운 날은 앞 다섯 개(Dauprat 다섯 크룩)만
+    if (mild) { pu.blocks = pu.blocks.filter(function (b) { return b[0] !== "high"; }); cHi = Math.min(cHi, 77); } // 약간 불편: 고음 블록 빼고 F5까지 (S3 2.2)
     if (hurt) { pu.blocks = pu.blocks.filter(function (b) { return ["longtone", "melody", "warmdown"].indexOf(b[0]) >= 0; }); pu.band = [1, 1]; cHi = Math.min(cHi, 72); }
     var adj = {};
     function note(k, s) { (adj[k] = adj[k] || []).push(s); }
@@ -4619,6 +4625,7 @@ window.ROUTINE_DATA = {
       if (effP === "회복") aux = ["flex", "bend", "buzz"].filter(function (k) { return prio[k] != null; }).concat(aux.filter(function (k) { return ["flex", "bend", "buzz"].indexOf(k) < 0; }));
       // 고음 모듈(apply.md 1.3): 주 4일, 20분 이상, 회복과 저음 목적이 아닐 때, 공백 4일 이상이면 쉼(R9). 고음 목적이면 중심 블록이 모듈
       if (HR && !HR.high) { focusK = focusK.filter(function (k) { return k !== "high"; }); aux = aux.filter(function (k) { return k !== "high"; }); }
+      if (mild) { focusK = focusK.filter(function (k) { return k !== "high"; }); aux = aux.filter(function (k) { return k !== "high"; }); }
       var modOn = HR ? HR.high && T >= 20 && ["유지", "약점", "아티큘레이션"].indexOf(effP) >= 0 && !mild && focusK.indexOf("high") < 0 : PD && PD.high && PD.high.module && T >= 30 && effP === "유지" && !mild && !(gap != null && gap >= 4) && focusK.indexOf("high") < 0; // 목적마다 다르게: 고음 모듈은 유지의 모듈 날과 고음 목적에만
       if (modOn) { aux = aux.filter(function (k) { return k !== "high"; }); }
       var n = cap - 2, mid = [];
@@ -4657,6 +4664,8 @@ window.ROUTINE_DATA = {
       if (focusK.length) focusK.forEach(function (k) { note(k, ""); });
       reasons.push({ k: "워밍업", t: __L("워밍업 ","Warm-up ") + mmss(Wm * 60) + __L(". 마우스피스 버징 루틴(조와 상관없이), 첫 소리, 슬러는 내려오는 방향부터. 새 기술은 넣지 않음",". Mouthpiece buzzing routine (any key), first notes, slurs starting downward. No new techniques") });
     }
+    // 약간 불편: 어느 경로로 왔든 고음 블록은 빼고 그 시간은 롱톤에 줌 (S3 2.2)
+    if (mild && !hurt && list && mins) { var mlH = 0, mlL = [], mlM = []; list.forEach(function (b, i) { if (b[0] === "high") mlH += mins[i]; else { mlL.push(b); mlM.push(mins[i]); } }); if (mlH) { var mlI = mlL.findIndex(function (b) { return b[0] === "longtone"; }); if (mlI < 0) { mlL.push(["longtone", 1, 1]); mlM.push(mlH); } else mlM[mlI] += mlH; list = mlL; mins = mlM; } }
     if (hurt && list && mins) { var keepI = []; list.forEach(function (b, i) { if (["longtone", "melody", "warmdown"].indexOf(b[0]) >= 0) keepI.push(i); }); if (!keepI.length) { list = [["longtone", 1, 1]]; mins = [Math.min(T, 6)]; } else { list = keepI.map(function (i) { return list[i]; }); mins = keepI.map(function (i) { return mins[i]; }); } Wm = 0; }
     var pool = (o.pool || []).filter(function (it) { return !it.hidden; }), used = {}, usedG = {}, usedT = {}, KEYS = typeof WeakMap !== "undefined" ? new WeakMap() : null, // usedG, usedT: 세트 전체에서 이미 쓴 생성기와 이름(검토 11-01: 워밍업과 어택 블록에 같은 '숨으로 시작')
       CT = function (t) { var A = G.HornStudies && G.HornStudies.abc; return A && A.cleanTitle ? A.cleanTitle(t || "") : String(t || ""); },
@@ -4893,6 +4902,7 @@ window.ROUTINE_DATA = {
     restCap();
     blocks.forEach(function (b) { b.restSec = Math.round(b.restSec); b.min = (b.playSec + b.restSec) / 60; b.rest = mmss(b.restSec); b.play = b.playSec; b.detail[0] = __L("연주 ","Play ") + mmss(b.playSec) + __L(" + 쉼 "," + rest ") + mmss(b.restSec) + ""; });
     if (HR && G.HornHRM) { try { var gfix = G.HornHRM.guard(blocks, HR); if (gfix) { blocks = gfix.blocks; gfix.why.forEach(function (w) { reasons.push({ k: "고음", t: w }); }); restCap(); blocks.forEach(function (b) { b.restSec = Math.round(b.restSec); b.min = (b.playSec + b.restSec) / 60; b.rest = mmss(b.restSec); b.play = b.playSec; if (b.detail && b.detail.length) b.detail[0] = __L("연주 ","Play ") + mmss(b.playSec) + __L(" + 쉼 "," + rest ") + mmss(b.restSec); }); } } catch (e) {} }
+    if (mild && !hurt) { var hiSec = 0; blocks = blocks.filter(function (b) { if (b.kind === "high") { hiSec += (b.playSec || 0) + (b.restSec || 0); return false; } return true; }); var ltb = blocks.filter(function (b) { return b.kind === "longtone"; })[0]; if (hiSec && ltb) { ltb.restSec += hiSec; ltb.min = (ltb.playSec + ltb.restSec) / 60; ltb.rest = mmss(ltb.restSec); } } // 약간 불편 날 고음 블록 최종 제거 (S3 2.2)
     // 손가락 번호 글자와 F관 연습(사용자 요청 11-01): 아티큘레이션과 첫 음 연습은 손가락 번호를 적고(G4까지 F관, G♯4부터 엄지),
     // 아티큘레이션 첫 연습은 G♯4 위 음이 있으면 F관 손가락 번호로 한 번 더. '기초 연습은 F관만'을 켜면 롱톤, 스케일, 에튀드 등은 모두 F관 손가락 번호
     var AB2 = G.HornStudies && G.HornStudies.abc, FK_AUTO = { artic: 1, attack: 1 }, FK_F = { longtone: 1, scale: 1, artic: 1, attack: 1, etude: 1, intervals: 1, low: 1, melody: 1 };
@@ -8660,12 +8670,12 @@ window.ROUTINE_DATA = {
   function fmtMin(t) { t = Math.max(0, Math.ceil(t)); var m = Math.floor(t / 60), s = t % 60; return m + ":" + (s < 10 ? "0" : "") + s; }
 
   /* 화면 전환. 분석은 따로 탭이 없고 기록 탭 안의 상세 화면(#v-analyze)이라 아래 메뉴는 기록에 불이 들어옴 */
-  var TITLES = { routine: __L("오늘","Today"), analyze: __L("기록","History"), takes: __L("기록","History"), lib: __L("연습","Practice"), review: __L("리뷰","Review"), hrm: __L("고음","High notes") };
+  var TITLES = { routine: __L("오늘","Today"), analyze: __L("기록","History"), takes: __L("기록","History"), lib: __L("연습","Practice"), review: __L("리뷰","Review"), hrm: __L("고음","High notes"), settings: __L("설정","Settings") };
   function go(v) {
     try { if (metro.timer) metro.stop(); (window.__metroStops || []).forEach(function (f) { f(); }); } catch (e) {}
     var tab = v === "analyze" ? "takes" : v;
     if (tab !== "takes" && window.__takesSelOff) window.__takesSelOff();
-    ["routine", "analyze", "takes", "lib", "review", "hrm"].forEach(function (x) { $("#v-" + x).classList.toggle("hide", x !== v); });
+    ["routine", "analyze", "takes", "lib", "review", "hrm", "settings"].forEach(function (x) { var e = $("#v-" + x); if (e) e.classList.toggle("hide", x !== v); });
     var meTab = tab === "takes" || tab === "review" || tab === "hrm" || tab === "analyze", navTab = meTab ? "me" : tab;
     Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) { if (b.dataset.v === navTab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     var sg = $("#meSeg"); if (sg) { sg.classList.toggle("hide", !meTab); Array.prototype.forEach.call(sg.querySelectorAll("button"), function (b) { var on = b.dataset.s === (tab === "analyze" ? "takes" : tab); b.setAttribute("aria-pressed", String(on)); b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(on)); }); }
@@ -8677,6 +8687,7 @@ window.ROUTINE_DATA = {
     if (v === "review" && window.__reviewShow) showReview();
     if (v === "hrm" && window.__hrmShow) window.__hrmShow();
     if (v === "routine" && window.__libRoutineShow) window.__libRoutineShow();
+    if (v === "settings" && window.__settingsShow) window.__settingsShow();
     syncPractice();
     try { window.scrollTo(0, 0); } catch (e) {}
   }
@@ -10367,7 +10378,7 @@ window.ROUTINE_DATA = {
   }
   $("#demoBtn").addEventListener("click", async function () {
     showErr(""); stopPlayback(); S.file = __L("견본","Sample"); S.fileName = __L("견본(합성음)","Sample (synthetic tone)"); S.currentTake = null; S.barTimes = []; $("#addTake").textContent = __L("기록에 추가","Add to History");
-    $("#sBpm").value = 72; $("#sBeats").value = 4; $("#sBars").value = 6; $("#sRef").value = "442";
+    $("#sBpm").value = 72; $("#sBeats").value = 4; $("#sBars").value = 6; $("#sRef").value = String(window.__REF ? window.__REF() : 442);
     await useBuffer(demoBuffer(), __L("견본(합성음)","Sample (synthetic tone)"), true);
   });
 
@@ -11655,7 +11666,7 @@ window.ROUTINE_DATA = {
       var abc = ex ? exAbcOf(ex) : "", tr = ex && ex.transpose != null ? ex.transpose : 7, ok2 = false;
       if (abc) {
         try {
-          var wa = Math.max(0, a - 20), wz = Math.min(buf.duration, z + 20), Aw = await HA.analyze(sliceBuf(buf, wa, wz), { ref: 442 }), ctx = window.__trend.ctxFromAbc(abc, tr), hit = [];
+          var wa = Math.max(0, a - 20), wz = Math.min(buf.duration, z + 20), Aw = await HA.analyze(sliceBuf(buf, wa, wz), { ref: (window.__REF ? window.__REF() : 442) }), ctx = window.__trend.ctxFromAbc(abc, tr), hit = [];
           if (Aw.notes.length >= 4 && ctx.length) {
             SC.align(ctx.map(function (c) { return { concert: c.concert }; }), Aw.notes).pairs.forEach(function (j, i) { if (j != null && Aw.notes[j] && Aw.notes[j].midi === ctx[i].concert) hit.push(j); });
             if (hit.length >= Math.max(4, ctx.length * 0.4)) { var na = wa + Aw.notes[hit[0]].start - 0.5, nz = wa + Aw.notes[hit[hit.length - 1]].end + 0.5; if (Math.abs(na - a) <= 20 && Math.abs(nz - z) <= 20) { a = na; z = nz; ok2 = true; refined++; } }
@@ -11663,7 +11674,7 @@ window.ROUTINE_DATA = {
         } catch (e) {}
       }
       a = Math.max(0, a); z = Math.min(buf.duration, z); if (z - a < 1) { skipped.push(b.title || String(b.index + 1)); continue; }
-      var seg = sliceBuf(buf, a, Math.min(z, a + MAX_SEC)), A2 = await HA.analyze(seg, { ref: 442 }), res = measureSeg(A2, ex, abc, tr), up = await uploadAudio(seg);
+      var seg = sliceBuf(buf, a, Math.min(z, a + MAX_SEC)), A2 = await HA.analyze(seg, { ref: (window.__REF ? window.__REF() : 442) }), res = measureSeg(A2, ex, abc, tr), up = await uploadAudio(seg);
       var at = isFinite(fileStart) ? new Date(fileStart + a * 1000).toISOString() : new Date().toISOString();
       var id = (tl.date + "_s" + k + "_" + hashStr(f.name + "|" + b.index + "|" + k)).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_");
       await T.db.doc("drills/" + id).set({ date: tl.date, title: ex ? ex.title : (b.title || ""), tempo: (ex && ex.tempo) || null, key: "", setKey: "", purpose: "", diff: "", kind: (blk && blk.kind) || (ex && ex.kind) || "", level: (ex && ex.level) || null, nat: tr !== 7, inst: (window.__inst ? window.__inst().inst : ""), instType: (window.__inst ? window.__inst().instType : ""), abc: abc, transpose: tr,
@@ -11747,7 +11758,7 @@ window.ROUTINE_DATA = {
     return { id: "D:" + d.id + ":" + (i + 1), virt: "drill", drillId: d.id, n: i + 1, kind: "루틴", catV: 2, recDate: d.date || localDate(at), recTime: localTime(at), createdAt: at,
       audioId: q.audioId || "", duration: q.dur || 0, sr: q.sr || 0, notes: q.an || [], trend: q.ev || [],
       summary: { notes: (q.an || []).length, absCents: s.absCents != null ? Math.round(s.absCents) : null, settleMed: s.settle != null ? Math.round(s.settle) : null, gaps: s.gaps || 0 },
-      settings: { bpm: q.tempo || d.tempo || null, ref: 442 },
+      settings: { bpm: q.tempo || d.tempo || null, ref: (window.__REF ? window.__REF() : 442) },
       meta: { abc: d.abc || "", abcBasis: basisName(d.transpose != null ? d.transpose : 7), abcFirstBar: 1, block: d.kind || "", exTitle: d.title || "", takeNo: String(i + 1) } };
   }
   function drillTakes() { var out = []; (T.drills || []).forEach(function (d) { (d.tries || []).forEach(function (q, i) { if (q && q.audioId) out.push(drillTake(d, i)); }); }); return out; }
@@ -15100,6 +15111,8 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     return { key: g.k, why: __L("엑섭 날은 가장 편했던 조. 음 맞음 ","Excerpt days use your most comfortable key. In tune ") + Math.round(100 * g.same / g.tot) + "% (" + g.same + "/" + g.tot + ")" };
   }
   // 안전 관문(레드팀 2회 C2, 3회 8번): 아픔이나 저림이면 엑섭 없음. 고음 쉬는 날(일요일, 빨강 뒤, 잠김)은 G5 위가 없는 조각만
+  // 수준(설정 Profile)을 난이도 기본값에 반영: 초보 한 단계 쉽게, 전문가 한 단계 어렵게 (S3 2.1)
+  function lvDiff() { var l = ((profileGet() || {}).level) || ""; var o = l === "beginner" ? -1 : l === "pro" ? 1 : 0; return Math.max(-1, Math.min(1, (U.diff || 0) + o)); }
   function hurtToday() { var b = bodyState(); return b.red.indexOf("아픔") >= 0 || b.red.indexOf("저림") >= 0; }
   function highRestToday(len, cx0, hx) { var hp = null; try { hp = window.HornHRM && window.HornHRM.dayPlan ? window.HornHRM.dayPlan({ date: today(), T: +len || 30, purpose: "유지", hi: U.hi, gap: cx0 ? cx0.gapDays : 0, pool: pool(), history: history(), hrm: hx }) : null; } catch (e) { hp = null; } return !!(hp && (hp.lock || hp.maint || hp.high === false)); }
   var HRC = { d: "", v: false };
@@ -15112,7 +15125,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     // 측정 약점 둘을 먼저, 그다음 엑섭 요구(레드팀 3회 11번). 고음 쉬는 날은 G5 위 요구 음을 뺌
     var mw = window.__prog ? window.__prog.weak().list : [], dw = C.R.weakOf(C.D).filter(function (w) { return !hiRest || !(w.m >= 79); });
     var weak = mw.slice(0, 2).concat(dw).concat(mw.slice(2)).slice(0, 4);
-    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: "유지", date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: U.diff, weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", keyPick: U.key ? null : comfyKey(), ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, "엑섭"), history: history(), concerts: [], candidates: 4 });
+    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: "유지", date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: lvDiff(), weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", keyPick: U.key ? null : comfyKey(), ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, "엑섭"), history: history(), concerts: [], candidates: 4 });
     var L = null; try { L = C.R.ladder(C.x, C.F, C.A, today(), C.dtc); } catch (e) { L = null; } if (!L || !L.items.length) return s;
     if (hiRest) { L.items = L.items.filter(function (it) { return (it.hi || 0) < 79; }); if (!L.items.length) { s.reasons = (s.reasons || []).concat([{ k: __L("엑섭","Excerpt"), t: __L("오늘은 고음 쉬는 날. 이 엑섭은 G5 위가 있어 내일","High-note rest day today. This excerpt goes above G5, so tomorrow") }]); return s; } }
     // 꺼내기 단계부터는 그날 첫 시도가 판단 기준(6.1 RETRIEVE): 전체 구간을 맨 앞에 한 번
@@ -15267,6 +15280,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     if (/^(15|30|45|60)$/.test(API.S.len)) U.prevLen = API.S.len; API.S.len = "5"; U.purpose = "가려 보기"; if (API.go) API.go("routine"); setMode("run");
   };
   function startMock() {
+    if (hurtToday()) { if (API.toast) API.toast(__L("오늘은 쉬는 날","Rest day today")); return; }
     if (U.inst.type === "내추럴" || U.inst.type === "바그너 튜바") { if (API.toast) API.toast(__L("이 악기용 모의 공연은 아직 없음","No mock performance for this instrument yet")); return; }
     var m = mockSet(); if (!m) return;
     var len = String(m.minutes), k = setKey(len, "모의 공연"); m.savedAt = new Date().toISOString(); U.sets[k] = m;
@@ -15295,7 +15309,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     if (purpose === "엑섭") { var rv = revSet(len, reroll); if (rv) return rv; purpose = "유지"; }
     var weak = window.__prog ? window.__prog.weak().list : [];
     var cx0 = ctxNow(), hx = null; try { hx = window.HornHRM ? window.HornHRM.ctx({ concerts: U.concerts, hi: U.hi, history: history(), gap: cx0.gapDays }) : null; } catch (e) { hx = null; } // 고음 모듈: 공연 날짜는 공연 준비 스위치와 상관없이
-    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: purpose, crooks: U.inst.type === "내추럴" ? U.inst.crooks : null, natOnly: U.inst.type === "내추럴", date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: U.diff, weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, purpose), history: history(), concerts: concArg(), candidates: 4 });
+    var s = GEN.buildBest({ fOnly: U.fOnly, fRepeat: U.fRepeat, minutes: +len, purpose: purpose, crooks: U.inst.type === "내추럴" ? U.inst.crooks : null, natOnly: U.inst.type === "내추럴", date: today(), reroll: reroll || 0, lo: U.lo, hi: U.hi, diff: lvDiff(), weak: weak, pool: pool(), crook: U.crook || "", key: U.key || "", ctx: cx0, hrm: hx, concertsAll: U.concerts, prevTitles: prevTitles(len, purpose), history: history(), concerts: (U.inst.type === "바그너 튜바" ? "off" : concArg()), candidates: 4 });
     s.lo = U.lo; s.hi = U.hi; s.diff = U.diff; s.temp = !libReady(); s.weak = weak.slice(0, 3).map(function (w) { return w.name; });
     try { endWin(s); } catch (e) {}
     try { benchNote(s); } catch (e) {}
@@ -15376,7 +15390,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   }
   function renderWeek() {
     var HP = window.HornPlan, c = weekCard(); if (!HP) { c.classList.add("hide"); return; }
-    var W; try { W = HP.week({ date: today(), pool: pool(), history: history(), concerts: concArg(), lo: U.lo, hi: U.hi }); } catch (e) { c.classList.add("hide"); return; }
+    var W; try { W = HP.week({ date: today(), pool: pool(), history: history(), concerts: (U.inst.type === "바그너 튜바" ? "off" : concArg()), lo: U.lo, hi: U.hi }); } catch (e) { c.classList.add("hide"); return; }
     c.classList.remove("hide"); c.innerHTML = "";
     var hd = el("div", "wk-head"); hd.appendChild(el("h3", "", __L("이번 주 계획","This week's plan"))); var wk0 = W[0].date.slice(5).replace("-", "."); hd.appendChild(el("span", "meta", (+W[0].date.slice(5, 7)) + __L("월 ","/") + (+W[0].date.slice(8, 10)) + __L("일부터"," onward"))); c.appendChild(hd);
     var row = el("div", "wk-plan"); row.setAttribute("role", "group"); row.setAttribute("aria-label", __L("이번 주 요일별 계획","Plan for each day this week"));
@@ -15624,12 +15638,12 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     var hiOK = true; try { var o = window.__hrmOpts && window.__hrmOpts(), H = window.HornHRM; if (o && H) { var P = H.dayPlan({ date: t, T: 30, purpose: "고음", hi: o.hi, hrm: H.ctx(o), pool: o.pool, gap: o.gap }); hiOK = P.high && !P.maint; } } catch (e) {}
     function why(p) { var d = daysAgo(lastRan(p)); return d == null ? __L("처음","First time") : d === 0 ? __L("오늘 이미 함","Already done today") : d + __L("일 전"," days ago"); }
     // 일요일, 공연 전날과 다음 날은 맨 위 제안을 계획 분량(15분)으로(레드팀 3회 16번)
-    var hint = 0; try { var HP0 = window.HornPlan, W0 = HP0 ? HP0.week({ date: t, pool: pool(), history: history(), concerts: concArg(), lo: U.lo, hi: U.hi }) : null, p0 = W0 && W0.filter(function (q) { return q.date === t; })[0]; hint = p0 && p0.minutesHint ? p0.minutesHint : 0; } catch (e) { hint = 0; }
+    var hint = 0; try { var HP0 = window.HornPlan, W0 = HP0 ? HP0.week({ date: t, pool: pool(), history: history(), concerts: (U.inst.type === "바그너 튜바" ? "off" : concArg()), lo: U.lo, hi: U.hi }) : null, p0 = W0 && W0.filter(function (q) { return q.date === t; })[0]; hint = p0 && p0.minutesHint ? p0.minutesHint : 0; } catch (e) { hint = 0; }
     if (red) out.push({ len: "15", p: "회복", t: __L("15분 회복","15 min recovery"), why: __L("몸 상태 ","Body: ") + pain.filter(function (k) { return BODY_RED.indexOf(k) >= 0; }).join(", ") + __L(". 작게, 낮게",". Keep it quiet and low") });
     var prepToday = false; try { var HPc = window.HornPlan, ix = HPc && HPc.dayIdx ? HPc.dayIdx(t) : null; var CSx = HPc && HPc.concertState && ix != null ? HPc.concertState(ix, concArg()) : null; prepToday = !!(CSx && (CSx.prep || CSx.run || CSx.mode === "concert" || CSx.mode === "eve")); } catch (e) { prepToday = false; }
-    var lenM = hint === 15 ? "15" : "30"; out.push({ len: lenM, p: "유지", t: lenM + __L("분 유지"," min maintain"), why: why("유지") + (cs && U.concertOn && prepToday ? __L(", 공연 구간 포함",", includes concert passages") : "") });
+    var lenM = hint === 15 ? "15" : "30"; out.push({ len: lenM, p: "유지", t: lenM + __L("분 유지"," min maintain"), why: why("유지") + (cs && U.concertOn && prepToday && !red ? __L(", 공연 구간 포함",", includes concert passages") : "") });
     var sore = pain.indexOf("약간 불편") >= 0;
-    if (hiOK && !red && !sore) out.push({ len: "30", p: "고음", t: __L("30분 고음","30 min high register"), why: why("고음") });
+    if (hiOK && !red && !sore) out[(((profileGet() || {}).goals) || []).indexOf("high_register") >= 0 ? "unshift" : "push"]({ len: "30", p: "고음", t: __L("30분 고음","30 min high register"), why: why("고음") });
     if (!red) out.push({ len: "45", p: "발전", t: __L("45분 발전","45 min develop"), why: why("발전") });
     if (out.length < 3) out.push({ len: "15", p: "회복", t: __L("15분 회복","15 min recovery"), why: why("회복") });
     return out.slice(0, 3);
@@ -15702,6 +15716,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   }
   function renderMock(sv) {
     var old = document.getElementById("mockRow"), cs = nextConcert();
+    if (hurtToday()) { if (old) old.remove(); return; }
     if (!cs || cs.d < 1 || cs.d > 14) { if (old) old.remove(); return; }
     var m = null; try { m = mockSet(); } catch (e) { m = null; } if (!m) { if (old) old.remove(); return; }
     var n0 = 0; try { n0 = JSON.parse(localStorage.getItem("horn-proto-ev") || "[]").filter(function (e) { return e.t === "mock_perf" && e.f && e.f.concert === cs.c.id; }).length; } catch (e) {}
@@ -15754,22 +15769,37 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   function profileGet() { try { return JSON.parse(localStorage.getItem("horn-proto-profile") || "null"); } catch (e) { return null; } }
   function profileSave(p) { try { localStorage.setItem("horn-proto-profile", JSON.stringify(p)); localStorage.setItem("horn-proto-onboard", "1"); } catch (e) {} if (U.db) U.db.doc("settings/profile").set(Object.assign({}, p, { at: new Date().toISOString() })).catch(function () {}); }
   window.__profile = profileGet;
-  function renderOnboard() {
+  function renderOnboard(edit, startStep) {
     var old = document.getElementById("onbCard"); if (old) old.remove();
     var P = window.__prog && window.__prog.P, done = false; try { done = localStorage.getItem("horn-proto-onboard") === "1"; } catch (e) {}
     var fresh = P && P.ready !== false && !(P.drills || []).length && !(P.takes || []).length && !(U.concerts || []).length;
     var ov = document.getElementById("onbOv");
-    if (done || !fresh) { if (ov) ov.remove(); return; }
-    if (ov) return;
-    var A = { types: [], models: {}, sel: {}, tun: {}, level: "", goals: [], lo: 0, hi: 0 }, step = 0;
-    ov = el("div", "onb-ov"); ov.id = "onbOv"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", __L("처음 설정","First-time setup"));
+    if (!edit) { if (ov && ov.dataset.edit) return; if (done || !fresh) { if (ov) ov.remove(); return; } if (ov) return; } else if (ov) ov.remove();
+    var A = { types: [], models: {}, sel: {}, tun: {}, level: "", goals: [], lo: 0, hi: 0 }, step = edit ? (startStep || 1) : 0;
+    // 16:49 사용자: 가입 뒤 언제든 고칠 수 있어야 함. 설정에서 열면 저장된 답을 채워 둔 채 해당 단계만 고치고 저장
+    if (edit) {
+      var pf0 = profileGet() || {};
+      A.types = (pf0.types || []).slice(); A.models = Object.assign({}, pf0.models || {}); A.level = pf0.level || ""; A.goals = (pf0.goals || []).slice(); A.lo = U.lo; A.hi = U.hi;
+      A.types.forEach(function (t) {
+        var mstr = A.models[t] || "", gs = (ONBD.models && ONBD.models[t]) || [], g = gs.filter(function (x) { return mstr.indexOf(x.brand) === 0; })[0], st = { brand: "", model: "", text: "", tun: ((pf0.tunings || {})[t] || []).slice() };
+        if (g) { st.brand = g.brand; var rest = mstr.slice(g.brand.length).trim(); if (g.models.indexOf(rest) >= 0) st.model = rest; } else if (mstr) { st.brand = "기타"; st.text = mstr === "기타" ? "" : mstr; }
+        A.sel[t] = st;
+      });
+    }
+    ov = el("div", "onb-ov"); ov.id = "onbOv"; if (edit) ov.dataset.edit = "1"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", __L("처음 설정","First-time setup"));
     var box = el("div", "onb-box"); ov.appendChild(box); document.body.appendChild(ov); document.body.classList.add("onb-open");
     function finish(skip) {
       var tuns = {}; Object.keys(A.sel).forEach(function (k) { if (A.types.indexOf(k) >= 0 && A.sel[k].tun.length) tuns[k] = A.sel[k].tun.slice(); }); var p = { skipped: !!skip, types: A.types, models: A.models, tunings: tuns, level: A.level, goals: A.goals, at: new Date().toISOString() };
       var only = A.types.length === 1 && A.types[0] === "single";
-      if (!skip && A.types.length) { U.fOnly = only; U.fRepeat = !only; try { localStorage.setItem("horn-proto-fonly", only ? "1" : "0"); localStorage.setItem("horn-proto-frepeat", only ? "0" : "1"); } catch (e) {} }
-      profileSave(p); ov.remove(); document.body.classList.remove("onb-open"); try { regenNow(); } catch (e) {} try { renderSetup(); } catch (e) {}
+      if (!skip && A.types.length && !edit) { U.fOnly = only; U.fRepeat = !only; try { localStorage.setItem("horn-proto-fonly", only ? "1" : "0"); localStorage.setItem("horn-proto-frepeat", only ? "0" : "1"); } catch (e) {} }
+      if (edit) { var pv = profileGet() || {}; p.skipped = false; if (!A.types.length) p.types = pv.types || [];
+        // 프로필 악기 목록에서 빠진 악기를 오늘 악기로 쓰고 있으면 새 목록 첫 악기로 바꿈 (S3 2.4.1)
+        var mpI = { single: "싱글", double: "더블", triple: "트리플", wagner: "바그너 튜바", natural: "내추럴" };
+        if (p.types.length && (!U.inst.type || p.types.map(function (t) { return mpI[t]; }).indexOf(U.inst.type) < 0)) { try { instApply({ type: mpI[p.types[0]] || "", key: "", sub: "", crooks: [] }); } catch (e) {} }
+      }
+      profileSave(p); ov.remove(); document.body.classList.remove("onb-open"); try { regenNow(); } catch (e) {} try { renderSetup(); } catch (e) {} try { if (window.__settingsShow) window.__settingsShow(); } catch (e) {}
     }
+    function cancel() { ov.remove(); document.body.classList.remove("onb-open"); }
     function chips(list, sel, multi, on) {
       var w = el("div", "chips onb-ch"); list.forEach(function (q) {
         var b = btn(q[1], "chip", function () { var k = sel.indexOf(q[0]); if (multi) { if (k < 0) sel.push(q[0]); else sel.splice(k, 1); } else { sel.length = 0; sel.push(q[0]); } on(); }, sel.indexOf(q[0]) >= 0); w.appendChild(b);
@@ -15777,6 +15807,10 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     }
     function nav(next, label, ok) {
       var r = el("div", "onb-nav");
+      if (edit) {
+        var sv = btn(__L("저장","Save"), "btn primary big", function () { next(); finish(false); }); if (ok === false) sv.disabled = true; r.appendChild(sv);
+        r.appendChild(btn(__L("취소","Cancel"), "btn text onb-skip", cancel)); return r;
+      }
       if (step > 0) r.appendChild(btn(__L("이전","Back"), "btn text", function () { step--; draw(); }));
       var n = btn(label || __L("다음","Next"), "btn primary big", next); if (ok === false) n.disabled = true; r.appendChild(n);
       var sk = btn(__L("건너뛰기","Skip"), "btn text onb-skip", function () { finish(true); }); r.appendChild(sk); return r;
@@ -15785,9 +15819,12 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     function draw() {
       box.innerHTML = ""; var h = el("h2", "onb-h", ""), sub = el("p", "onb-s", "");
       if (step === 0) {
-        h.textContent = __L("안녕하세요, 반가워요","Hello, nice to meet you"); sub.textContent = __L("처음 한 번만 몇 가지 물어볼게요. 한 번 답하면 다시 묻지 않아요.","A few quick questions, once only. Once you answer, we won't ask again.");
+        h.textContent = __L("연습 설정","Your setup"); sub.textContent = __L("악기, 수준, 음역, 목표. 나중에 설정에서 언제든 바꿀 수 있습니다.","Instruments, level, range and goals. Change them any time in Settings.");
         box.appendChild(h); box.appendChild(sub);
-        var r0 = el("div", "onb-nav"); r0.appendChild(btn(__L("시작","Start"), "btn primary big", function () { step = 1; draw(); })); r0.appendChild(btn(__L("건너뛰기","Skip"), "btn text onb-skip", function () { finish(true); })); box.appendChild(r0); return;
+        var r0 = el("div", "onb-nav"); r0.appendChild(btn(__L("시작","Start"), "btn primary big", function () { step = 1; draw(); })); r0.appendChild(btn(__L("건너뛰기","Skip"), "btn text onb-skip", function () { finish(true); })); box.appendChild(r0);
+        // 새 기기: 설문 대신 iCloud 기록 파일에서 불러오기 (레드팀 2)
+        var ldb = document.querySelector("#sa-bak button:nth-of-type(2)"); if (ldb) box.appendChild(btn(__L("iCloud에서 불러오기","Load from iCloud"), "btn text onb-load", function () { ldb.click(); }));
+        return;
       }
       if (step === 1) {
         h.textContent = __L("가진 악기를 모두 고르세요","Select all the instruments you have"); box.appendChild(h);
@@ -15848,6 +15885,53 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     }
     draw();
   }
+  /* 설정 탭 (16:49 사용자 요청). 프로필, 공연, 화면, 자료를 한 곳에서 */
+  function renderSettings() {
+    var v = document.getElementById("setBody"); if (!v) return; var bk0 = document.getElementById("sa-bak"); if (bk0 && v.contains(bk0)) document.body.appendChild(bk0); v.innerHTML = "";
+    var pf = profileGet() || {};
+    function sec(t) { v.appendChild(el("h2", "set-h", t)); }
+    function row(label, val, fn) { var r = el("button", "card lrow two set-row"); r.type = "button"; var t = el("span"); t.appendChild(el("b", "", label)); t.appendChild(el("small", "", val || __L("정하지 않음","Not set"))); r.appendChild(t); r.appendChild(el("span", "chev", "›")); r.addEventListener("click", fn); v.appendChild(r); return r; }
+    function nm(list, keys) { return (keys || []).map(function (k) { var x = list.filter(function (q) { return q[0] === k; })[0]; return x ? x[1] : k; }).join(", "); }
+    function swRow(label, on, fn) { var r = el("label", "lrow two sw-row set-sw"), tx = el("span"); tx.appendChild(el("b", "", label)); r.appendChild(tx); var sw = el("input", "sw"); sw.type = "checkbox"; sw.setAttribute("role", "switch"); sw.checked = !!on; sw.setAttribute("aria-label", label); sw.addEventListener("change", function () { fn(sw.checked); }); r.appendChild(sw); v.appendChild(r); return r; }
+    function chipRow(label, list, cur, fn) { var w = el("div", "set-chiprow"); w.appendChild(el("b", "set-cl", label)); var cw = el("div", "chips set-theme"); list.forEach(function (q) { cw.appendChild(btn(q[1], "chip", function () { fn(q[0]); renderSettings(); }, String(cur) === String(q[0]))); }); w.appendChild(cw); v.appendChild(w); }
+    sec(__L("악기","Instrument"));
+    row(__L("가진 악기","Instruments"), nm(ONB_TYPES, pf.types), function () { renderOnboard(true, 1); });
+    var md = (pf.types || []).map(function (t) { return pf.models && pf.models[t]; }).filter(Boolean).join(", ");
+    row(__L("제조사와 모델","Maker and model"), md, function () { renderOnboard(true, 2); });
+    sec(__L("연습","Practice"));
+    var curLen = (API.S && API.S.len) || "30"; try { curLen = localStorage.getItem("horn-proto-len") || curLen; } catch (e) {}
+    chipRow(__L("기본 시간","Default length"), [["15", "15"], ["30", "30"], ["45", "45"], ["60", "60"]].map(function (q) { return [q[0], q[1] + " min"]; }), curLen, function (l) { if (API.S) API.S.len = l; try { localStorage.setItem("horn-proto-len", l); } catch (e) {} try { API.renderChips && API.renderChips(); } catch (e) {} try { renderPurpose(); regenNow(); } catch (e) {} });
+    swRow(__L("공연 준비","Concert prep"), U.concertOn, function (on) { U.concertOn = on; U.concertChose = new Date().toISOString(); try { localStorage.setItem("horn-proto-concert-on", on ? "1" : "0"); } catch (e) {} saveConcerts(); try { regenNow(); renderWeek(); } catch (e) {} });
+    if (U.inst.type !== "바그너 튜바" && U.inst.type !== "내추럴") {
+      swRow(__L("기초 연습은 F관만","Basics on F only"), U.fOnly, function (on) { U.fOnly = on; try { localStorage.setItem("horn-proto-fonly", on ? "1" : "0"); } catch (e) {} try { regenNow(); renderWeek(); } catch (e) {} });
+      swRow(__L("아티큘레이션 F관으로 한 번 더","Extra articulation pass on F"), U.fRepeat, function (on) { U.fRepeat = on; try { localStorage.setItem("horn-proto-frepeat", on ? "1" : "0"); } catch (e) {} try { regenNow(); renderWeek(); } catch (e) {} });
+    }
+    swRow(__L("연습마다 타이머 자동 시작","Start timer on each exercise"), U.autoTimer, function (on) { U.autoTimer = on; try { localStorage.setItem("horn-proto-autotimer", on ? "1" : "0"); } catch (e) {} try { renderWeek(); } catch (e) {} });
+    sec(__L("공연","Concerts"));
+    (U.concerts || []).forEach(function (c, i) {
+      var r = el("div", "card lrow two set-row set-conc"); var t = el("span"); t.appendChild(el("b", "", (c.title || c.short || "") + (c.part ? " (" + c.part + ")" : "")));
+      var dl = el("label", "set-date"); var di = el("input", "inp"); di.type = "date"; di.value = c.date || ""; di.setAttribute("aria-label", __L("공연 날짜","Concert date")); di.addEventListener("change", function () { if (!/^\d{4}-\d\d-\d\d$/.test(di.value)) return; U.concerts[i] = Object.assign({}, c, { date: di.value, confirmed: true }); saveConcerts(); try { regenNow(); renderWeek(); renderSuggest(); } catch (e) {} }); dl.appendChild(di); t.appendChild(dl); r.appendChild(t);
+      r.appendChild(btn(__L("빼기","Remove"), "btn small", function () { U.concerts = U.concerts.filter(function (q, j) { return j !== i; }); U.concertsTouched = true; saveConcerts(); try { regenNow(); } catch (e) {} try { renderWeek(); renderSuggest(); } catch (e) {} renderSettings(); }));
+      v.appendChild(r);
+    });
+    var ad = btn(__L("공연 추가","Add concert"), "btn set-add", function () { concAdd(); var iv = setInterval(function () { if (!document.querySelector(".sheet-ov:not(.hide), .sheet.open")) { clearInterval(iv); renderSettings(); } }, 600); setTimeout(function () { clearInterval(iv); }, 120000); }); v.appendChild(ad);
+    sec(__L("프로필","Profile"));
+    row(__L("수준","Level"), nm(ONB_LV, pf.level ? [pf.level] : []), function () { renderOnboard(true, 3); });
+    row(__L("편한 음역","Comfortable range"), nmw(U.lo) + " – " + nmw(U.hi), function () { renderOnboard(true, 4); });
+    row(__L("목표","Goals"), nm(ONBD.goals || [], pf.goals), function () { renderOnboard(true, 5); });
+    sec(__L("음높이","Pitch"));
+    var rf = window.__REF ? window.__REF() : 442;
+    chipRow(__L("기준음 A","Reference A"), [415, 430, 432, 440, 441, 442, 443].map(function (x) { return [x, String(x)]; }), rf, function (x) { try { localStorage.setItem("horn-ref", String(x)); } catch (e) {} });
+    sec(__L("화면","Appearance"));
+    var th = ""; try { th = localStorage.getItem("horn-proto-theme") || ""; } catch (e) {}
+    var cw = el("div", "chips set-theme"); [["", __L("기기 따라","System")], ["light", __L("밝게","Light")], ["dark", __L("어둡게","Dark")]].forEach(function (q) {
+      cw.appendChild(btn(q[1], "chip", function () { try { if (q[0]) localStorage.setItem("horn-proto-theme", q[0]); else localStorage.removeItem("horn-proto-theme"); } catch (e) {} if (q[0]) document.documentElement.setAttribute("data-theme", q[0]); else document.documentElement.removeAttribute("data-theme"); renderSettings(); }, th === q[0]));
+    }); v.appendChild(cw);
+    sec(__L("기록 파일","Data"));
+    var bak = document.getElementById("sa-bak"); if (bak) { bak.style.margin = "0"; bak.style.padding = "0"; v.appendChild(bak); }
+    else v.appendChild(el("small", "set-note", __L("이 판에서는 기록 파일 저장이 없습니다","No backup file in this build")));
+  }
+  window.__settingsShow = renderSettings;
   function renderSetup() {
     renderOnboard();
     renderPurpose(); renderWeek(); renderBody(); histLink(); renderSuggest(); renderLanding();
@@ -16257,7 +16341,10 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     if (!window.claude || !window.claude.use) return;
     try { U.db = await window.claude.use("db"); } catch (e) { U.db = null; }
     if (!U.db) return;
-    try { var r = await U.db.doc("settings/range").get(); var d = r && r.data ? r.data() : null; if (d && d.lo && d.hi) { U.lo = d.lo; U.hi = d.hi; $("#rLo").value = U.lo; $("#rHi").value = U.hi; renderPurpose(); if (window.__rangeStaff) window.__rangeStaff(); } } catch (e) {}
+    // 새 기기에서 기록 파일을 불러오면 프로필과 오늘 악기도 돌아오게, 이 기기에 없을 때만 채움 (S3 2.4.5)
+    try { if (!profileGet()) { var rp = await U.db.doc("settings/profile").get(); var dp = rp && rp.data ? rp.data() : null; if (dp && dp.types) { delete dp.at; try { localStorage.setItem("horn-proto-profile", JSON.stringify(dp)); localStorage.setItem("horn-proto-onboard", "1"); } catch (e) {} var ov0 = document.getElementById("onbOv"); if (ov0 && !ov0.dataset.edit) { ov0.remove(); document.body.classList.remove("onb-open"); } } } } catch (e) {}
+    try { if (!U.inst || !U.inst.type) { var ri = await U.db.doc("settings/inst").get(); var di = ri && ri.data ? ri.data() : null; if (di && di.type) { delete di.at; instApply(di); } } } catch (e) {}
+    try { var r = await U.db.doc("settings/range").get(); var d = r && r.data ? r.data() : null; if (d && d.lo && d.hi) { U.lo = d.lo; U.hi = d.hi; try { localStorage.setItem("horn-proto-range", JSON.stringify({ lo: U.lo, hi: U.hi })); } catch (e) {} $("#rLo").value = U.lo; $("#rHi").value = U.hi; renderPurpose(); if (window.__rangeStaff) window.__rangeStaff(); } } catch (e) {}
     try { var rc = await U.db.doc("settings/concerts").get(); var dc = rc && rc.data ? rc.data() : null; if (dc && dc.choseAt) U.concertChose = dc.choseAt; if (dc && typeof dc.on === "boolean") { if (dc.on || dc.choseAt) { U.concertOn = dc.on; try { localStorage.setItem("horn-proto-concert-on", dc.on ? "1" : "0"); } catch (e) {} } else { U.concertOn = true; U.db.doc("settings/concerts").set(Object.assign({}, dc, { on: true, at: new Date().toISOString() })).catch(function () {}); } } if (dc && Array.isArray(dc.list) && (dc.list.length || !dc.prefill)) U.concertsTouched = true; if (dc && Array.isArray(dc.list) && dc.list.length) U.concerts = concNorm(dc.list); else if (U.concerts) U.db.doc("settings/concerts").set({ list: U.concerts, on: !!U.concertOn, at: new Date().toISOString(), prefill: true }).catch(function () {}); if (U.mode === "setup") renderWeek(); } catch (e) {}
     U.db.collection("sets").onSnapshot(function (snap) {
       var changed = false, first = !U.setsLoaded, seen = {};
@@ -19080,5 +19167,43 @@ input[type=range]{accent-color:var(--text)}
 })();
 </script>
 <style id="sent-lines-css">.sl{display:block}.sl+.sl{margin-top:.15em}</style>
+<style id="v6-1107">
+/* 16:49 사용자: Build your own 상자가 빽빽함, 토글의 흰색과 회색 구분이 안 됨, 설정 탭 */
+.sg-more{padding:0 22px!important;min-height:48px;display:inline-flex;align-items:center;justify-content:center;margin:12px 0 20px!important}
+.sg-go,.sg-pick{padding:0 16px!important;min-height:44px;display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap}
+/* 선택은 검게 채움, 선택 안 함은 흰 바탕에 가는 테두리. 회색 바탕은 쓰지 않음 */
+#lenChips,#diffChips{background:transparent!important;gap:8px!important}
+#lenChips .chip,#diffChips .chip,#setupView #lenChips .chip,#setupView #diffChips .chip{padding:0 12px!important;background:var(--bg)!important;border:1px solid #9A9A9A!important;color:var(--text)!important}
+#lenChips .chip[aria-pressed="true"],#diffChips .chip[aria-pressed="true"],#setupView #lenChips .chip[aria-pressed="true"],#setupView #diffChips .chip[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--text)!important;border-color:var(--text)!important;color:var(--bg)!important}
+.wk-cell{background:var(--bg)!important;border:1px solid #C8C8C8!important;color:var(--text)!important}
+.wk-cell[aria-pressed="true"]{background:var(--text)!important;border-color:var(--text)!important;color:var(--bg)!important}
+.wk-cell.today:not([aria-pressed="true"]){border:2px solid var(--text)!important}
+.wk-cell.past:not([aria-pressed="true"]){color:#8A8A8A!important}
+/* 스위치: 꺼짐은 흰 칸에 회색 사각이 왼쪽, 켜짐은 검은 칸에 흰 사각이 오른쪽 */
+input.sw[type=checkbox]{width:56px!important;min-width:56px;height:32px!important;border-radius:0!important;background:var(--bg)!important;border:1.5px solid #8A8A8A!important;box-shadow:none!important}
+input.sw[type=checkbox]::after{inset:3.5px auto auto 3.5px!important;width:22px!important;height:22px!important;border-radius:0!important;background:#8A8A8A!important;box-shadow:none!important}
+input.sw[type=checkbox]:checked{background:var(--text)!important;border-color:var(--text)!important}
+input.sw[type=checkbox]:checked::after{transform:translateX(24px)!important;background:var(--bg)!important}
+/* 설정 탭 */
+nav.tabs{grid-template-columns:repeat(4,1fr)!important}
+#setBody{padding:0 0 120px}
+.set-h{font-family:"MusicSym","Imbue",serif;font-weight:500;font-size:28px;line-height:1.1;margin:32px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--text)}
+.set-row{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0!important;border:0!important;border-bottom:1px solid #E2E2E2!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.set-row>span:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}.set-row .btn{flex:0 0 auto}#v-settings{overflow-x:hidden}
+.set-row b{display:block;font-weight:600}.set-row small{display:block;color:#6B6B6B;margin-top:2px}
+.set-add{width:100%;min-height:48px;margin-top:12px}
+.set-theme{display:flex;gap:8px}.set-theme .chip{flex:1;min-height:44px;background:var(--bg);border:1px solid #9A9A9A}
+:root[data-theme="dark"] .set-row small{color:#A8A8A8}
+/* 설정으로 옮긴 오늘 화면 줄(공연 관리, F관, 타이머 자동 시작) */
+#setupView .wk-conc{display:none!important}
+.set-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #E2E2E2}
+.set-sw b{font-weight:600}
+.set-chiprow{padding:14px 0;border-bottom:1px solid #E2E2E2}
+.set-cl{display:block;font-weight:600;margin-bottom:10px}
+.set-chiprow .set-theme{display:grid!important;grid-template-columns:repeat(4,1fr);gap:8px}.set-chiprow .chip{min-width:0;padding:0 6px}
+.set-row b,.set-row small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.set-date{display:block;margin-top:6px}.set-date input{border:0;border-bottom:1px solid #9A9A9A;border-radius:0;background:transparent;color:var(--text);font:inherit;padding:4px 0;min-height:36px}
+
+</style>
 </body>
 </html>
