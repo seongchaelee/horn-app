@@ -8870,6 +8870,19 @@ window.ROUTINE_DATA = {
         card.appendChild(wrap); card.__ex.push(item);
       });
       if (card.__ex.length > 1) card.classList.add("multi");
+      if (card.__ex.length > 1) { // 연습마다 한 쪽: 가로로 밀어 넘김. 높이는 지금 보는 연습에 맞춤
+        (function () {
+          var nEx = card.__ex.length, pager = el("div", "ex-pager"), nav = el("div", "ex-nav"), cnt = el("span", "ex-count"), dots = el("div", "ex-dots"), cur = 0, tm = 0;
+          function setH() { var sl = pager.children[cur]; if (!sl || !sl.offsetWidth) return; pager.style.height = sl.offsetHeight + "px"; var want = cur * pager.clientWidth; if (Math.abs(pager.scrollLeft - want) > 2 && !pager.__moving) pager.scrollLeft = want; }
+          function mark() { cnt.textContent = (cur + 1) + __L(" / "," of ") + nEx; Array.prototype.forEach.call(dots.children, function (d, k) { if (k === cur) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); }); }
+          function go1(k) { pager.__moving = true; pager.scrollTo({ left: k * pager.clientWidth, behavior: reduced() ? "auto" : "smooth" }); }
+          card.__ex.forEach(function (x, k) { pager.appendChild(x.wrap); var d = el("button", "ex-dot"); d.type = "button"; d.setAttribute("aria-label", __L((k + 1) + "번째 연습: ", "Exercise " + (k + 1) + ": ") + (x.ex.title || bk.name)); d.addEventListener("click", function () { go1(k); }); dots.appendChild(d); });
+          nav.appendChild(cnt); nav.appendChild(dots); mark();
+          pager.addEventListener("scroll", function () { clearTimeout(tm); tm = setTimeout(function () { pager.__moving = false; var k = Math.max(0, Math.min(nEx - 1, Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth)))); if (k === cur) return; if (window.__exSlide && window.__exSlide(card, k, cur) === false) { pager.scrollTo({ left: cur * pager.clientWidth, behavior: "auto" }); return; } cur = k; mark(); setH(); window.scrollTo(0, Math.min(window.scrollY, Math.max(0, card.getBoundingClientRect().top + window.scrollY - 8))); }, 70); }, { passive: true });
+          if (window.ResizeObserver) { var ro = new ResizeObserver(function () { setH(); }); Array.prototype.forEach.call(pager.children, function (sl) { ro.observe(sl); }); }
+          card.appendChild(nav); card.appendChild(pager);
+        })();
+      }
       var end = el("div", "blk-end"), nb = el("button", "btn big", i + 1 < R.blocks.length ? __L("다음 연습 (\"","Next exercise (\"") + R.blocks[i + 1].name + "\")" : __L("오늘 연습 끝내기","Finish today's practice")); nb.type = "button";
       nb.addEventListener("click", function () { PR.next(); });
       end.appendChild(nb); card.appendChild(end);
@@ -9547,7 +9560,7 @@ window.ROUTINE_DATA = {
       if (dir && !reduced()) { void d.offsetWidth; d.classList.add(dir > 0 ? "slide-l" : "slide-r"); }
       var U = window.__setApi && window.__setApi.U; if (U) U.idx = i;
       try { d.dispatchEvent(new Event("scroll")); } catch (e) {} // setui.js paint(): 메트로놈 설정과 표시
-      if (document.body.classList.contains("practice")) P.seen[i] = true;
+      if (document.body.classList.contains("practice")) { if (!P.seen[i] && !initial) chapterCover(i); P.seen[i] = true; }
       if (!initial) window.scrollTo(0, 0);
       drawBlock(cs[i], function () { pickCur(); });
       if (P.cur) P.cur.wrap.classList.remove("is-cur"); P.cur = null; pickCur();
@@ -9576,11 +9589,12 @@ window.ROUTINE_DATA = {
       var L = exList(), best = null;
       if (L.length) {
         var bar = $("#practiceBar"), barTop = bar && !bar.classList.contains("hide") ? bar.getBoundingClientRect().top : window.innerHeight, bv = -1;
-        L.forEach(function (x) { var r = x.wrap.getBoundingClientRect(), v = Math.min(r.bottom, barTop) - Math.max(r.top, 0); if (v > bv + 1) { bv = v; best = x; } });
+        L.forEach(function (x) { var r = x.wrap.getBoundingClientRect(), hv = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0); if (hv < r.width * 0.5) return; var v = Math.min(r.bottom, barTop) - Math.max(r.top, 0); if (v > bv + 1) { bv = v; best = x; } });
         if (P.pin && L.indexOf(P.pin) >= 0) { var r = P.pin.wrap.getBoundingClientRect(); if (r.bottom > 80 && r.top < barTop - 80) best = P.pin; else P.pin = null; }
       }
       if (best !== P.cur) { if (P.cur) P.cur.wrap.classList.remove("is-cur"); P.cur = best; if (best) best.wrap.classList.add("is-cur"); syncBar(); }
     }
+    window.__exSlide = function (card, k) { if (busyRec()) { toast(__L("녹음 끝난 뒤 이동","Move on after the recording ends")); return false; } stopAllSound(); P.pin = null; try { var it = card && card.__ex && card.__ex[k]; if (it && window.__metroEx) window.__metroEx(+String(card.id).split("-")[1], it.id); } catch (e) {} setTimeout(pickCur, 30); return true; };
     function drillOf(x) { var d = x && x.wrap.querySelector(".drill"); return d && d.__drill ? d.__drill : null; }
     window.__curDrill = function () { var rv = document.getElementById("runView"), v = document.getElementById("v-routine"); if (!rv || rv.classList.contains("hide") || !v || v.classList.contains("hide")) return null; return drillOf(P.cur); }; // 붙여넣은 녹음은 지금 보는 연습으로
     function tempoLabel() {
@@ -9641,7 +9655,22 @@ window.ROUTINE_DATA = {
     }
     function startTimer() { if (P.running || !P.R) return; P.running = true; P.last = performance.now(); clearInterval(P.timer); P.timer = setInterval(tick, 500); }
     function stopTimer() { if (!P.running) return; P.running = true; tick(); P.running = false; clearInterval(P.timer); save(true); }
-    function enter() { if (!P.R) return; var firstSeen = !P.seen[P.idx]; P.seen[P.idx] = true; startTimer(); if (firstSeen) { var at = true; try { at = localStorage.getItem("horn-proto-autotimer") !== "0"; } catch (e) {} if (!at) setPaused(true); } sync(); segOpen(); if (P.pending) { var f = P.pending; P.pending = null; setTimeout(f, 0); } }
+    /* 챕터 표지: 블록에 처음 들어갈 때 숫자와 제목만 잠깐(탭하면 바로 닫힘). 설정 Practice에서 끔 */
+    function chapterCover(i) {
+      var on = true; try { on = localStorage.getItem("horn-proto-chapters") !== "0"; } catch (e) {} if (!on || !P.R || !P.R.blocks[i]) return;
+      var old = document.querySelector(".chap"); if (old) old.remove();
+      var bar = $("#practiceBar"), bt = bar && !bar.classList.contains("hide") ? bar.getBoundingClientRect().top : window.innerHeight;
+      var c = el("div", "chap"); c.setAttribute("role", "dialog"); c.setAttribute("aria-label", __L((i + 1) + "번 ", "") + P.R.blocks[i].name); c.style.bottom = Math.max(0, window.innerHeight - bt) + "px";
+      c.appendChild(el("i", "chap-r")); c.appendChild(el("i", "chap-r"));
+      c.appendChild(el("div", "chap-n", String(i + 1))); c.appendChild(el("div", "chap-t", P.R.blocks[i].name)); c.appendChild(el("i", "chap-r"));
+      var gone = false, tm = 0;
+      function close() { if (gone) return; gone = true; clearTimeout(tm); c.classList.add("out"); setTimeout(function () { c.remove(); }, reduced() ? 0 : 220); }
+      c.addEventListener("click", close); c.addEventListener("touchstart", close, { passive: true });
+      document.body.appendChild(c); void c.offsetWidth; c.classList.add("in");
+      tm = setTimeout(close, reduced() ? 900 : 1700);
+    }
+    window.__chapterCover = chapterCover;
+    function enter() { if (!P.R) return; var firstSeen = !P.seen[P.idx]; P.seen[P.idx] = true; if (firstSeen && !(P.pending)) chapterCover(P.idx); startTimer(); if (firstSeen) { var at = true; try { at = localStorage.getItem("horn-proto-autotimer") !== "0"; } catch (e) {} if (!at) setPaused(true); } sync(); segOpen(); if (P.pending) { var f = P.pending; P.pending = null; setTimeout(f, 0); } }
     function whenReady(f) { if (document.body.classList.contains("practice") && P.R) f(); else P.pending = f; }
     function leave() { segClose(); if ($("#runView").classList.contains("hide")) stopTimer(); }
     /* 진행 띠와 블록 목록 */
@@ -9855,8 +9884,8 @@ window.ROUTINE_DATA = {
       var bl = deck();
       bl.addEventListener("click", function (e) { var w = e.target.closest(".ex"); if (!w || e.target.closest("button,input,label,a,select")) return; var it = exList().filter(function (x) { return x.wrap === w; })[0]; if (it) { P.pin = it; pickCur(); } });
       var sw = null;
-      bl.addEventListener("touchstart", function (e) { if (e.touches.length !== 1) { sw = null; return; } var t = e.touches[0], sc = e.target.closest(".score"); sw = sc && sc.scrollWidth > sc.clientWidth + 1 ? null : { x: t.clientX, y: t.clientY }; }, { passive: true });
-      bl.addEventListener("touchend", function (e) { if (!sw) return; var t = e.changedTouches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y; sw = null; if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) { if (dx < 0) next(true); else prev(); } }, { passive: true });
+      bl.addEventListener("touchstart", function (e) { if (e.touches.length !== 1) { sw = null; return; } var t = e.touches[0], sc = e.target.closest(".score"); var pg = e.target.closest(".ex-pager"); sw = sc && sc.scrollWidth > sc.clientWidth + 1 ? null : { x: t.clientX, y: t.clientY, pg: pg ? { start: pg.scrollLeft <= 2, end: pg.scrollLeft + pg.clientWidth >= pg.scrollWidth - 2 } : null }; }, { passive: true });
+      bl.addEventListener("touchend", function (e) { if (!sw) return; var sw0 = sw, t = e.changedTouches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y; sw = null; var pgi = sw0.pg; if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) { if (dx < 0 && (!pgi || pgi.end)) next(true); else if (dx > 0 && (!pgi || pgi.start)) prev(); } }, { passive: true });
       document.addEventListener("keydown", function (e) { if (!document.body.classList.contains("practice") || SH.open || /INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || "")) return; if (e.key === "ArrowRight") next(true); if (e.key === "ArrowLeft") prev(); });
       window.addEventListener("scroll", function () { if (!document.body.classList.contains("practice") || P.raf) return; P.raf = requestAnimationFrame(function () { P.raf = 0; pickCur(); }); }, { passive: true });
       // 녹음 패널(drill.js) 상태: 카운트, 녹음 중, 재는 중, 끝
@@ -15955,6 +15984,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
       swRow(__L("기초 연습은 F관만","Basics on F only"), U.fOnly, function (on) { U.fOnly = on; try { localStorage.setItem("horn-proto-fonly", on ? "1" : "0"); } catch (e) {} try { regenNow(); renderWeek(); } catch (e) {} });
       swRow(__L("아티큘레이션 F관으로 한 번 더","Extra articulation pass on F"), U.fRepeat, function (on) { U.fRepeat = on; try { localStorage.setItem("horn-proto-frepeat", on ? "1" : "0"); } catch (e) {} try { regenNow(); renderWeek(); } catch (e) {} });
     }
+    swRow(__L("연습 앞에 제목 표지","Chapter title before each exercise"), (function () { try { return localStorage.getItem("horn-proto-chapters") !== "0"; } catch (e) { return true; } })(), function (on) { try { localStorage.setItem("horn-proto-chapters", on ? "1" : "0"); } catch (e) {} });
     swRow(__L("연습마다 타이머 자동 시작","Start timer on each exercise"), U.autoTimer, function (on) { U.autoTimer = on; try { localStorage.setItem("horn-proto-autotimer", on ? "1" : "0"); } catch (e) {} try { renderWeek(); } catch (e) {} });
     sec(__L("공연","Concerts"));
     (U.concerts || []).forEach(function (c, i) {
@@ -16204,10 +16234,10 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
      설정은 블록 이름마다 저장. 같은 세트면 그대로, 다른 날 세트(조나 난이도가 바뀌어 기본 템포가 다름)면 내가 바꾼 비율만큼 옮김.
      템포는 안에서 4분음표 기준(tq)으로 갖고, 박 단위가 점4분음표면 2/3로 보여 줌 */
   var MAEL = [40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 126, 132, 138, 144, 152, 160, 168, 176, 184, 192, 200, 208];
-  var MT = { cache: {}, rows: [] };
+  var MT = { cache: {}, rows: [], ex: {} };
   function mainEx(bk) { var ids = (bk && bk.ex) || []; for (var k = 0; k < ids.length; k++) { var e = D.exercises[ids[k]]; if (e && (e.raw || e.abc)) return e; } return D.exercises[ids[0]] || null; }
   function mDef(i) {
-    var R = API.curR(), ex = mainEx(R && R.blocks[i]), tq = (ex && ex.tempo) || 60, beats = 4, unit = "q";
+    var R = API.curR(), ex = (MT.ex[i] && D.exercises[MT.ex[i]]) || mainEx(R && R.blocks[i]), tq = (ex && ex.tempo) || 60, beats = 4, unit = "q";
     var mm = ex && String(ex.raw || ("M:" + (ex.meter || ""))).match(/^M:\s*(C\|?|\d+\s*\/\s*\d+)/m);
     if (mm) {
       var v = mm[1].replace(/\s/g, ""), n = v === "C" ? 4 : v === "C|" ? 2 : +v.split("/")[0], dd = v === "C" ? 4 : v === "C|" ? 2 : +v.split("/")[1];
@@ -16217,7 +16247,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     }
     return { tq: tq, beats: beats, unit: unit, sub: 1 };
   }
-  function mKey(i) { var R = API.curR(); return "horn-metro2:" + ((R && R.blocks[i]) ? R.blocks[i].name : i); }
+  function mKey(i) { var R = API.curR(), b = R && R.blocks[i], m0 = b && mainEx(b), sfx = MT.ex[i] && m0 && D.exercises[MT.ex[i]] !== m0 ? ":" + MT.ex[i] : ""; return "horn-metro2:" + (b ? b.name : i) + sfx; }
   function mOld(i) { var R = API.curR(); return "horn-metro:" + (R ? R.name : "") + ":" + i + ":" + ((R && R.blocks[i]) ? R.blocks[i].name : ""); }
   function mCfg(i) {
     if (MT.cache[i]) return MT.cache[i];
@@ -16243,6 +16273,12 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   }
   // 녹음(drill.js)이 셈 박과 템포를 가져감: 4분음표 기준으로 돌려줌
   window.__blockMetro = function (keyId) { var i = +String(keyId || "").split("_")[1]; if (!isFinite(i)) return null; var c = mCfg(i); return { tempo: Math.round(c.tq), beats: c.unit === "dq" ? Math.round(c.beats * 1.5) : c.beats, sub: c.sub, unit: c.unit }; };
+  // 한 블록 안에서 연습 쪽을 넘기면 메트로놈 템포와 박자도 그 연습을 따름
+  window.__metroEx = function (i, exId) {
+    if (!isFinite(i)) return; MT.ex[i] = exId; delete MT.cache[i];
+    var c = cards()[i]; if (!c) return; var old = c.querySelector(".bmetro"); if (old) old.remove();
+    MT.rows = MT.rows.filter(function (r) { return r.i !== i; }); metroRow(c, i); syncMetro();
+  };
   function runShown() { return U.mode === "run" && !$("#runView").classList.contains("hide") && cards().length > 0; }
   // 메트로놈이 매 순간 묻는 설정: 지금 화면의 블록
   API.metro.cfg = function () {
@@ -16352,7 +16388,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     try { if (window.HornHRM) window.HornHRM.deck(R, cards()); } catch (e) {} // 곡 블록 고음 들어가기 점검
     // 같은 세트를 다시 그린 경우(저장소 갱신 등)에는 보던 블록과 메트로놈을 그대로 둠
     var sig = (R.name || "") + "#" + R.blocks.map(function (b) { return b.name; }).join("|"), same = sig === lastDeck, keepIdx = same ? U.idx : 0;
-    lastDeck = sig; MT.cache = {}; MT.rows = [];
+    lastDeck = sig; MT.cache = {}; MT.rows = []; MT.ex = {};
     if (!same) { stopMetro(); U.idx = 0; }
     var cv = $("#curve"); cv.innerHTML = "";
     R.blocks.forEach(function (b, i) {
@@ -19571,6 +19607,25 @@ nav.tabs{grid-template-columns:repeat(4,1fr)!important}
 
 .hrm-link b,.hrm-link small{white-space:normal;overflow:visible;text-overflow:clip}
 .lip-gate{display:flex;flex-direction:column;gap:10px}
+
+.ex-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-2px 0 2px}
+.ex-count{font:600 11px/1 var(--f-ui,'Helvetica Neue',Helvetica,Arial,sans-serif);letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.ex-dots{display:flex;gap:4px}
+.ex-dot{appearance:none;border:0;background:none;padding:14px 3px;margin:-14px 0;cursor:pointer;position:relative;min-width:28px}
+.ex-dot::after{content:"";display:block;height:2px;width:100%;background:var(--line,#d9d9d9);transition:background .15s}
+.ex-dot[aria-current="true"]::after{background:var(--text,#111);height:2px}
+.ex-pager{display:flex;align-items:flex-start;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;transition:height .18s ease}
+.ex-pager::-webkit-scrollbar{display:none}
+.ex-pager>.ex{flex:0 0 100%;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;border-top:0;padding-top:2px;align-self:flex-start;min-width:0}
+@media (prefers-reduced-motion:reduce){.ex-pager{transition:none}}
+
+.chap{position:fixed;left:0;right:0;top:0;z-index:40;background:var(--bg,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;transition:opacity .22s ease;cursor:pointer;padding:0 28px;text-align:center}
+.chap.in{opacity:1}.chap.out{opacity:0}
+.chap-r{display:block;width:min(68%,260px);height:1px;background:var(--text,#111);margin:0}
+.chap-r + .chap-r{margin-top:4px}
+.chap-n{font:500 clamp(84px,24vw,120px)/1 var(--f-disp,'Imbue',Georgia,serif);color:var(--text,#111);margin:30px 0 6px;letter-spacing:-.01em}
+.chap-t{font:italic 400 22px/1.3 var(--f-it,'Instrument Serif',Georgia,serif);color:var(--text2,#444);margin:0 0 30px;max-width:300px}
+@media (prefers-reduced-motion:reduce){.chap{transition:none}}
 </style>
 <script id="written-key">
 /* 이조 표기(설정 Written key): 악보만 보이는 조로 옮김. 분석과 기대음은 그대로 F 기보 기준 */
