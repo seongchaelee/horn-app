@@ -18859,122 +18859,299 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
 /* 유튜브 음정 분석 요약(mkbench.py가 만듦, 손으로 고치지 말 것) */
 window.HornRefBench = {"date": "2026-11-01", "method": __L("녹음마다 그 녹음 자체 기준음에서 ±15센트 안. 악보 없이 소리만 잼(반주 섞임 가능)","Within ±15 cents of each recording's own reference pitch. Sound only, no score (accompaniment may be mixed in)"), "perf": [{"who": "Christoph Eß", "ch": "ChristophEC39F", "natural": false, "in15": [12302, 15948], "flat": [2078, 15948], "hi": [531, 725], "recs": 20}, {"who": "Scott Leger", "ch": "ScottLegerHorn", "natural": false, "in15": [9164, 12299], "flat": [1685, 12299], "hi": [298, 403], "recs": 36}, {"who": "David Cooper", "ch": "davidcooperhorn", "natural": false, "in15": [36106, 53541], "flat": [9219, 53541], "hi": [873, 1359], "recs": 38}, {"who": "Young Kim", "ch": "YoungKimHorn", "natural": false, "in15": [6761, 10690], "flat": [2093, 10690], "hi": [385, 572], "recs": 12}, {"who": "Haley Hoops", "ch": "HaleyHoops", "natural": false, "in15": [7566, 12017], "flat": [2591, 12017], "hi": [210, 481], "recs": 27}, {"who": "Anneke Scott", "ch": "AnnekeScott", "natural": true, "in15": [31013, 49549], "flat": [8253, 49549], "hi": [607, 1065], "recs": 89}], "mine": {"piece": {"in15": [3365, 5117], "flat": [1107, 5117], "hi": [77, 133], "recs": 10}, "basic": {"in15": [5750, 10440], "flat": [2604, 10440], "hi": [106, 153], "recs": 10}}, "pieces": [{"key": "k495", "title": "Mozart: Horn Concerto No. 4, K. 495", "match": "K\\.?\\s?495|Horn Concerto No\\.?\\s?4", "refs": [{"date": "2017-01-01", "id": "FtLg8G4hQ6I", "who": "David Cooper", "title": "David Cooper, Mozart Horn Concerto 4 K.495", "in15": [1590, 1946], "flat": [214, 1946], "natural": false}, {"date": "2018-11-12", "id": "P-IzIKrRheU", "who": "David Cooper", "title": "David Cooper performs Mozart horn Concerto 4 K. 495 in Udine, Italy", "in15": [1768, 2358], "flat": [396, 2358], "natural": false}, {"date": "2022-08-06", "id": "2-d34JSHo1o", "who": "Anneke Scott", "title": "Rondo: Allegro vivace from Mozart's Horn Concerto in E flat K495 - Anneke Scott & Steven D", "in15": [370, 577], "flat": [41, 577], "natural": true}], "mine": [{"date": "2026-05-27", "id": "-sVM5710uYM", "who": __L("나","Me"), "title": "Mozart 4 - I. Allegro moderato", "in15": [487, 665], "flat": [115, 665], "natural": false}, {"date": "2026-05-27", "id": "X-j1ri4LHsI", "who": __L("나","Me"), "title": "Mozart 4 - II. Romanze", "in15": [228, 260], "flat": [23, 260], "natural": false}, {"date": "2026-05-27", "id": "bIjnRNeWUOI", "who": __L("나","Me"), "title": "Mozart 4 - III. Rondo", "in15": [708, 1066], "flat": [235, 1066], "natural": false}]}, {"key": "gliere10", "title": "Glière: Nocturne, Op. 35 No. 10", "match": "Gli[eè]re.*Noct", "refs": [{"date": "2025-10-02", "id": "xNe4yWSD1iI", "who": "Christoph Eß", "title": "Glière: Nocturno op.35, No.10 for Horn and Piano", "in15": [280, 355], "flat": [39, 355], "natural": false}], "mine": []}]};
 
-/* 음별 음정 판(TE Tuner의 Tuning by Note처럼): 날짜를 고르면 그날 잰 음을 반음 칸에 모아
-   초록(±8센트 안), 주황(8~15센트), 빨강(15센트 넘음) 비율과 평소 쏠림(바늘)을 보여 줌.
-   자료: __prog.attempts()의 notes [기보 midi, 센트, 안착ms], 연습마다 첫 시도(try1)만. 참고 연주는 progress.js에서 이미 빠짐 */
+/* 음별 음정 판(TE Tuner의 Tuning by Note처럼, V7-01 11-07 개편): 녹음(__prog.attempts notes [기보 midi, 센트, 안착ms], 연습마다 첫 시도만)과
+   실시간 듣기(__live.days() notes [기보 midi, 중앙 센트, 안착ms, 중앙 dBFS, 길이 초])를 합쳐
+   1) 반음 칸마다 ±8센트 안 비율(잉크 농도와 빗금), 보통 쏠림(바늘), 음 수  2) 높게 나는 음과 낮게 나는 음, 음역별  3) 고른 음과 전체의 날짜별 추이
+   4) 음량(dBFS)과 음정의 관계(실시간 자료 20음 이상일 때만)를 보여 줌. 색은 잉크와 회색만(--text, --bg 기준), 모양과 채움, 빗금으로 구분 */
 (function () {
   "use strict";
   var G1 = 8, G2 = 15;
   var NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
-  var S = { day: null, concert: false, sel: null };
-  function ink(k) { return getComputedStyle(document.documentElement).getPropertyValue(k).trim() || "#888"; }
+  var S = { day: null, concert: false, sel: null, src: "all" };
+  var MON = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function nm(m) { return NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); }
   function med(a) { var b = a.slice().sort(function (x, y) { return x - y; }), n = b.length; return n ? (n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2) : null; }
   function zone(c) { var a = Math.abs(c); return a <= G1 ? 0 : a <= G2 ? 1 : 2; }
-  /* 칸 색: 바늘 위치(보통값)만이 아니라 얼마나 자주 맞았는지로 정함 */
+  /* 칸 등급: 바늘 위치(보통값)만이 아니라 얼마나 자주 맞았는지로 정함. 0 고름, 1 섞임, 2 자주 벗어남 */
   function grade(e) { var n = e.z[0] + e.z[1] + e.z[2], g = e.z[0] / n, r = e.z[2] / n; return g >= 0.6 && r < 0.15 ? 0 : r >= 0.35 ? 2 : 1; }
   function md(d) { var p = d.split("-"), y = new Date().getFullYear(); return (+p[0] !== y ? +p[0] + __L("년 ","JanFebMarAprMayJunJulAugSepOctNovDec") : __L(""," ")) + +p[1] + __L("월 ",", ") + +p[2] + __L("일",""); } // 올해가 아니면 연도까지(레드팀 3회 12번)
+  function sd(d) { var p = d.split("-"); return __L(+p[1] + "/" + +p[2], MON[+p[1] - 1] + " " + +p[2]); } // 축 표기용 짧은 날짜
   function wd(d) { return __L("일월화수목금토","SunMonTueWedThuFriSat").charAt(new Date(d + "T12:00:00").getDay()); }
+  function sg(v) { v = Math.round(v); return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v); }
+  function f1(v) { var r = Math.round(v * 10) / 10; return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r).toFixed(1); }
+  function dayKey(t) { return new Date(t - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10); }
+  function X(v) { return (Math.round(v * 10) / 10).toString(); }
 
+  /* 자료 합치기: {d 날짜, m 기보 midi, c 센트, db dBFS 또는 null, s "r" 녹음 / "l" 실시간, t1 첫 시도} */
+  function samples() {
+    var out = [], P = window.__prog, L = window.__live;
+    if (P) P.attempts(function () { return true; }).forEach(function (a) {
+      if (!a.date) return; var d = a.date.slice(0, 10);
+      (a.notes || []).forEach(function (n) { if (n[0] != null && n[1] != null) out.push({ d: d, m: n[0], c: n[1], db: null, s: "r", t1: !!a.try1 }); });
+    });
+    if (L && L.days) try { L.days().forEach(function (doc) {
+      if (!doc || !doc.date || !doc.notes) return;
+      doc.notes.forEach(function (n) { if (n && n[0] != null && n[1] != null && Math.abs(n[1]) <= 50) out.push({ d: doc.date, m: n[0], c: n[1], db: n[3] == null ? null : n[3], s: "l", t1: true }); });
+    }); } catch (e) {}
+    return out;
+  }
+  function group(list) {
+    var by = {}; list.forEach(function (x) { var e = by[x.m] = by[x.m] || { c: [], z: [0, 0, 0] }; e.c.push(x.c); e.z[zone(x.c)]++; }); return by;
+  }
+  /* 옛 호출 호환: 녹음 목록만 받아 같은 모양으로 */
   function collect(list) {
     var by = {}, days = {};
     list.forEach(function (a) {
-      if (!a.date) return; var dk = a.date.slice(0, 10);
-      var D = days[dk] = days[dk] || { n: 0, z: [0, 0, 0], recs: 0, sec: 0 };
-      D.recs++; if (a.take && a.take.duration) D.sec += a.take.duration;
-      (a.notes || []).forEach(function (n) {
-        if (n[0] == null || n[1] == null) return;
-        D.n++; D.z[zone(n[1])]++;
-        if (S.day && S.day !== dk) return;
-        var e = by[n[0]] = by[n[0]] || { c: [], z: [0, 0, 0] };
-        e.c.push(n[1]); e.z[zone(n[1])]++;
-      });
+      if (!a.date) return; var dk = a.date.slice(0, 10), D = days[dk] = days[dk] || { n: 0, z: [0, 0, 0], recs: 0, sec: 0 };
+      D.recs++; (a.notes || []).forEach(function (n) { if (n[0] == null || n[1] == null) return; D.n++; D.z[zone(n[1])]++; if (S.day && S.day !== dk) return; var e = by[n[0]] = by[n[0]] || { c: [], z: [0, 0, 0] }; e.c.push(n[1]); e.z[zone(n[1])]++; });
     });
     return { by: by, days: days };
   }
 
-  /* 칸 하나: 반원 바늘. 왼쪽이 낮음, 오른쪽이 높음 */
-  function gauge(e) {
-    var W = 26, H = 15, cx = 13, cy = 14, R = 11, c = Math.max(-40, Math.min(40, med(e.c))), ang = Math.PI * (1 - (c + 40) / 80);
-    var zc = grade(e) === 2 ? ink("--bad") : ink("--text");
-    function arc(a0, a1, col) {
-      var p0 = [cx + R * Math.cos(a0), cy - R * Math.sin(a0)], p1 = [cx + R * Math.cos(a1), cy - R * Math.sin(a1)];
-      return '<path d="M' + p0[0].toFixed(1) + " " + p0[1].toFixed(1) + " A" + R + " " + R + " 0 0 1 " + p1[0].toFixed(1) + " " + p1[1].toFixed(1) + '" stroke="' + col + '" stroke-width="3" fill="none" opacity=".35"/>';
-    }
-    var t = function (v) { return Math.PI * (1 - (v + 40) / 80); };
-    var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" aria-hidden="true">';
-    s += arc(t(-40), t(-G1), ink("--text3")) + arc(t(-G1), t(G1), ink("--text")) + arc(t(G1), t(40), ink("--text3")); // 홈: 맞음 범위만 진하게, 색은 틀린 음 바늘에만
-    s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + (R - 1) * Math.cos(ang)).toFixed(1) + '" y2="' + (cy - (R - 1) * Math.sin(ang)).toFixed(1) + '" stroke="' + zc + '" stroke-width="2" stroke-linecap="round"/><circle cx="' + cx + '" cy="' + cy + '" r="2" fill="' + zc + '"/></svg>';
-    return s;
+  /* 칸 안 바늘: 가로 눈금 −30~+30, 가운데 ±8 회색 띠, 보통값에 잉크 막대 */
+  function needle(c, w) {
+    w = w || 44; var H = 12, sx = function (v) { return 2 + (Math.max(-30, Math.min(30, v)) + 30) / 60 * (w - 4); };
+    return '<svg class="ng-nd" width="' + w + '" height="' + H + '" viewBox="0 0 ' + w + " " + H + '" aria-hidden="true"><rect class="ng-band" x="' + X(sx(-G1)) + '" y="3" width="' + X(sx(G1) - sx(-G1)) + '" height="6"/><line class="ng-ax" x1="2" y1="6" x2="' + (w - 2) + '" y2="6"/><line class="ng-ax" x1="' + X(sx(0)) + '" y1="2" x2="' + X(sx(0)) + '" y2="10"/><rect class="ng-pin" x="' + X(sx(c) - 1.25) + '" y="0" width="2.5" height="12"/></svg>';
   }
-  function shareBar(z, big) {
-    var n = z[0] + z[1] + z[2]; if (!n) return "";
-    var cols = ["--text3", "--line", "--bad"];
-    return '<div class="ng-bar' + (big ? " big" : "") + '">' + z.map(function (v, i) { return v ? '<i style="flex:' + v + ";background:var(" + cols[i] + ')">' + "" + "</i>" : ""; }).join("") + "</div>";
+  /* 비율 막대: 맞음 잉크, 조금 벗어남 회색, 고칠 음 빗금 */
+  function shareBar(z, label) {
+    var n = z[0] + z[1] + z[2]; if (!n) return ""; var x = 0, W = 300, s = '<svg class="ng-sb" viewBox="0 0 300 14" preserveAspectRatio="none" role="img" aria-label="' + esc(label || "") + '">';
+    [["ng-s0", z[0]], ["ng-s1", z[1]], ["ng-s2", z[2]]].forEach(function (p, i) { if (!p[1]) return; var w = p[1] / n * W; s += '<rect class="' + p[0] + '" x="' + X(x) + '" y="0" width="' + X(Math.max(1, w - (x + w < W - 0.5 ? 2 : 0))) + '" height="14"><title>' + esc([__L("맞음","In tune"), __L("조금 벗어남","A bit off"), __L("고칠 음","Needs work")][i] + " " + p[1]) + "</title></rect>"; x += w; });
+    return s + "</svg>";
+  }
+  function legend3() {
+    return '<div class="ng-leg" aria-hidden="true"><span><i class="ng-k0"></i>' + __L("맞음","In tune") + '</span><span><i class="ng-k1"></i>' + __L("조금 벗어남","A bit off") + '</span><span><i class="ng-k2"></i>' + __L("고칠 음","Needs work") + '</span><span><i class="ng-k3"></i>' + __L("음 3개 미만","Under 3 notes") + "</span></div>";
   }
 
+  /* 가로 막대(0에서 좌우로): 높음은 잉크 면, 낮음은 잉크 테두리. rows [{k 이름, v 센트, n, tip, m}] */
+  function divBars(rows, aria) {
+    if (!rows.length) return "";
+    var RH = 26, LW = 64, VW = 64, W = CW, PW = W - LW - VW, mx = Math.max(20, Math.min(40, Math.ceil(Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); })) / 5) * 5)), sx = function (v) { return LW + (Math.max(-mx, Math.min(mx, v)) + mx) / (2 * mx) * PW; }, H = rows.length * RH + 18;
+    var s = '<svg class="ng-db" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(aria) + '">';
+    s += '<rect class="ng-band" x="' + X(sx(-G1)) + '" y="0" width="' + X(sx(G1) - sx(-G1)) + '" height="' + (rows.length * RH) + '"/>';
+    rows.forEach(function (r, i) {
+      var y = i * RH, x0 = sx(0), x1 = sx(r.v), up = r.v >= 0;
+      s += "<g" + (r.m != null ? ' class="ng-hit" data-ngm="' + r.m + '"' : "") + ' data-tip="' + esc(r.tip) + '"><rect class="ng-hitr" x="0" y="' + y + '" width="' + W + '" height="' + RH + '"/>' +
+        '<text class="ng-tl" x="0" y="' + (y + 17) + '">' + esc(r.k) + "</text>" +
+        '<rect class="' + (up ? "ng-up" : "ng-dn") + '" x="' + X(Math.min(x0, x1) + (up ? 0 : 0.5)) + '" y="' + (y + 7.5) + '" width="' + X(Math.max(1, Math.abs(x1 - x0) - 0.5)) + '" height="11"/>' +
+        '<text class="ng-tv" x="' + (W - VW + 8) + '" y="' + (y + 17) + '">' + sg(r.v) + '<tspan class="ng-tn" dx="6">' + r.n + "</tspan></text></g>";
+    });
+    var yb = rows.length * RH;
+    s += '<line class="ng-ax0" x1="' + X(sx(0)) + '" y1="0" x2="' + X(sx(0)) + '" y2="' + yb + '"/><line class="ng-ax" x1="' + LW + '" y1="' + yb + '" x2="' + (LW + PW) + '" y2="' + yb + '"/>';
+    [-mx, -G1, 0, G1, mx].forEach(function (v) { s += '<text class="ng-tick" text-anchor="middle" x="' + X(sx(v)) + '" y="' + (yb + 14) + '">' + sg(v) + "</text>"; });
+    return s + "</svg>";
+  }
+
+  /* 날짜별 선 그래프. days: 날짜 배열(30일), series [{k, pts {날짜: 값}, cls, n {날짜: 음 수}}], y [lo, hi], band */
+  function lineChart(days, series, yr, opt) {
+    var W = CW, H = opt.h, L = 42, R = 30, T = 8, B = 20, PW = W - L - R, PH = H - T - B, n = days.length;
+    var sx = function (i) { return L + (n < 2 ? PW / 2 : i / (n - 1) * PW); }, sy = function (v) { return T + (yr[1] - Math.max(yr[0], Math.min(yr[1], v))) / (yr[1] - yr[0]) * PH; };
+    var s = '<svg class="ng-lc" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opt.aria) + '">';
+    if (opt.band) s += '<rect class="ng-band" x="' + L + '" y="' + X(sy(opt.band[1])) + '" width="' + PW + '" height="' + X(sy(opt.band[0]) - sy(opt.band[1])) + '"/>';
+    opt.ticks.forEach(function (v) { s += '<line class="' + (v === opt.zero ? "ng-ax0" : "ng-gl") + '" x1="' + L + '" y1="' + X(sy(v)) + '" x2="' + (L + PW) + '" y2="' + X(sy(v)) + '"/><text class="ng-tick" text-anchor="end" x="' + (L - 6) + '" y="' + X(sy(v) + 4) + '">' + opt.fmt(v) + "</text>"; });
+    s += '<line class="ng-ax" x1="' + L + '" y1="' + (T + PH) + '" x2="' + (L + PW) + '" y2="' + (T + PH) + '"/>';
+    [0, Math.floor((n - 1) / 2), n - 1].forEach(function (i, j) { s += '<text class="ng-tick" text-anchor="' + (j === 0 ? "start" : j === 2 ? "end" : "middle") + '" x="' + X(sx(i)) + '" y="' + (H - 5) + '">' + sd(days[i]) + "</text>"; });
+    series.forEach(function (se) {
+      var path = "", last = null, pen = false;
+      days.forEach(function (d, i) { var v = se.pts[d]; if (v == null) return; path += (pen ? "L" : "M") + X(sx(i)) + " " + X(sy(v)); pen = true; last = [sx(i), sy(v)]; }); // 빈 날은 건너뛰어 이음(점이 실제 날)
+      if (!path) return;
+      s += '<path class="' + se.cls + '" d="' + path + '"/>';
+      days.forEach(function (d, i) { var v = se.pts[d]; if (v != null) s += '<circle class="' + se.cls + '-p" cx="' + X(sx(i)) + '" cy="' + X(sy(v)) + '" r="' + (se.cls === "ng-l1" ? 3 : 2.5) + '"/>'; });
+      if (last && series.length > 1) s += '<text class="ng-dl" x="' + X(last[0] + 5) + '" y="' + X(last[1] + 4) + '">' + esc(se.k) + "</text>";
+    });
+    var cw = PW / Math.max(1, n - 1);
+    days.forEach(function (d, i) { var parts = series.filter(function (se) { return se.pts[d] != null; }).map(function (se) { return se.k + " " + opt.fmt(se.pts[d]) + (se.n && se.n[d] ? " (" + se.n[d] + ")" : ""); }); if (parts.length) s += '<rect class="ng-col" x="' + X(sx(i) - cw / 2) + '" y="' + T + '" width="' + X(cw) + '" height="' + PH + '" data-tip="' + esc(md(d) + ": " + parts.join(", ")) + '"/>'; });
+    return s + "</svg>";
+  }
+
+  /* 음량 대 음정 산점도와 맞춘 선 */
+  function scatter(pts, fit, aria, ylab) {
+    var W = CW, H = Math.round(Math.min(260, Math.max(200, CW * 0.45))), L = 42, R = 10, T = 8, B = 30, PW = W - L - R, PH = H - T - B;
+    var xs = pts.map(function (p) { return p.x; }), x0 = Math.floor(Math.min.apply(null, xs) / 5) * 5, x1 = Math.ceil(Math.max.apply(null, xs) / 5) * 5; if (x1 - x0 < 10) x1 = x0 + 10;
+    var ab = pts.map(function (p) { return Math.abs(p.y); }).sort(function (a, b) { return a - b; }), ym = Math.max(20, Math.min(50, Math.ceil(ab[Math.floor(ab.length * 0.98)] / 10) * 10));
+    var sx = function (v) { return L + (v - x0) / (x1 - x0) * PW; }, sy = function (v) { return T + (ym - Math.max(-ym, Math.min(ym, v))) / (2 * ym) * PH; };
+    var s = '<svg class="ng-sc" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(aria) + '">';
+    s += '<rect class="ng-band" x="' + L + '" y="' + X(sy(G1)) + '" width="' + PW + '" height="' + X(sy(-G1) - sy(G1)) + '"/>';
+    [-ym, 0, ym].forEach(function (v) { s += '<line class="' + (v ? "ng-gl" : "ng-ax0") + '" x1="' + L + '" y1="' + X(sy(v)) + '" x2="' + (L + PW) + '" y2="' + X(sy(v)) + '"/><text class="ng-tick" text-anchor="end" x="' + (L - 6) + '" y="' + X(sy(v) + 4) + '">' + sg(v) + "</text>"; });
+    s += '<line class="ng-ax" x1="' + L + '" y1="' + (T + PH) + '" x2="' + (L + PW) + '" y2="' + (T + PH) + '"/>';
+    for (var v = x0; v <= x1; v += (x1 - x0 > 30 ? 10 : 5)) s += '<line class="ng-ax" x1="' + X(sx(v)) + '" y1="' + (T + PH) + '" x2="' + X(sx(v)) + '" y2="' + (T + PH + 3) + '"/><text class="ng-tick" text-anchor="middle" x="' + X(sx(v)) + '" y="' + (T + PH + 14) + '">' + sg(v) + "</text>";
+    s += '<text class="ng-tick" text-anchor="end" x="' + (L + PW) + '" y="' + (H - 2) + '">dBFS</text><text class="ng-tick" x="' + L + '" y="' + (H - 2) + '">' + esc(ylab) + "</text>";
+    var step = Math.max(1, Math.ceil(pts.length / 600));
+    for (var i = 0; i < pts.length; i += step) { var p = pts[i]; s += '<circle class="ng-dot" cx="' + X(sx(p.x)) + '" cy="' + X(sy(p.y)) + '" r="2.6" data-tip="' + esc(p.tip) + '"/>'; }
+    if (fit) s += '<line class="ng-fit" x1="' + X(sx(x0)) + '" y1="' + X(sy(fit.a + fit.b * x0)) + '" x2="' + X(sx(x1)) + '" y2="' + X(sy(fit.a + fit.b * x1)) + '"/>';
+    return s + "</svg>";
+  }
+  function ols(pts) {
+    var n = pts.length, mx = 0, my = 0, sxx = 0, sxy = 0, syy = 0; pts.forEach(function (p) { mx += p.x; my += p.y; }); mx /= n; my /= n;
+    pts.forEach(function (p) { sxx += (p.x - mx) * (p.x - mx); sxy += (p.x - mx) * (p.y - my); syy += (p.y - my) * (p.y - my); });
+    if (!sxx) return null; var b = sxy / sxx; return { a: my - b * mx, b: b, r: syy ? sxy / Math.sqrt(sxx * syy) : 0 };
+  }
+
+  var CW = 340;
   function render(host) {
-    var P = window.__prog; if (!P) return;
-    // 주 값은 연습마다 첫 시도만(같은 연습을 연달아 하면 2번째부터는 실력보다 좋게 나옴, S13, S24). 연습 중 변화는 아래 한 줄로만
-    // 리뷰 기간 탭을 따름(레드팀 3회 12번)
-    var rd = window.__reviewDays ? window.__reviewDays() : 0, from = rd ? new Date(Date.now() - (rd - 1) * 864e5 - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) : "0000";
-    var allA = P.attempts(function (a) { return !a.date || a.date.slice(0, 10) >= from; }), all = allA.filter(function (a) { return a.try1; });
-    var C0 = collect(all), dayKeys = Object.keys(C0.days).filter(function (k) { return C0.days[k].n; }).sort().reverse().slice(0, 14);
-    if (!dayKeys.length) { host.innerHTML = ""; return; }
+    CW = Math.max(300, Math.min(640, Math.floor(host.clientWidth || 340)));
+    var P = window.__prog; if (!P && !window.__live) return;
+    // 리뷰 기간 탭을 따름(레드팀 3회 12번). 녹음은 연습마다 첫 시도만(S13, S24)
+    var rd = window.__reviewDays ? window.__reviewDays() : 0, from = rd ? dayKey(Date.now() - (rd - 1) * 864e5) : "0000";
+    var ALL = samples(), hasR = ALL.some(function (x) { return x.s === "r"; }), hasL = ALL.some(function (x) { return x.s === "l"; });
+    if (!(hasR && hasL)) S.src = "all";
+    var base = ALL.filter(function (x) { return x.t1 && (S.src === "all" || (S.src === "rec" ? x.s === "r" : x.s === "l")); });
+    var inP = base.filter(function (x) { return x.d >= from; });
+    var dayN = {}; inP.forEach(function (x) { dayN[x.d] = (dayN[x.d] || 0) + 1; });
+    var dayKeys = Object.keys(dayN).sort().reverse().slice(0, 14);
+    if (!ALL.length) { host.innerHTML = ""; return; }
     if (S.day && dayKeys.indexOf(S.day) < 0) S.day = null;
-    var C = collect(all), by = C.by, days = C.days, CA = collect(allA);
-    var z = [0, 0, 0]; Object.keys(by).forEach(function (k) { for (var i = 0; i < 3; i++) z[i] += by[k].z[i]; });
-    var n = z[0] + z[1] + z[2];
+    var cur = inP.filter(function (x) { return !S.day || x.d === S.day; }), by = group(cur);
+    var z = [0, 0, 0]; cur.forEach(function (x) { z[zone(x.c)]++; }); var n = cur.length;
     var off = S.concert ? -7 : 0, keys = Object.keys(by).map(Number);
-    var h = __L('<div class="card rv ng"><h3>음별 음정</h3>','<div class="card rv ng"><h3>Pitch by note</h3>');
-    var daysH = __L('<div class="ng-days" role="group" aria-label="날짜">','<div class="ng-days" role="group" aria-label="Date">') + '<button type="button" class="chip sm" data-ngd="" aria-pressed="' + !S.day + __L('">전체</button>','">All</button>') +
+    var h = '<div class="card rv ng">' + __L("<h3>음별 음정</h3>","<h3>Pitch by note</h3>") + '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="ngHatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" class="ng-hbg"/><line x1="0" y1="0" x2="0" y2="5" class="ng-hln"/></pattern></defs></svg>';
+    var chips = function (attr, opts, curv, aria) { return '<div class="ng-tog" role="group" aria-label="' + aria + '">' + opts.map(function (o) { return '<button type="button" class="chip sm" ' + attr + '="' + o[0] + '" aria-pressed="' + (curv === o[0]) + '">' + o[1] + "</button>"; }).join("") + "</div>"; };
+    var srcH = hasR && hasL ? chips("data-ngs", [["all", __L("전체","All")], ["rec", __L("녹음","Recordings")], ["live", __L("실시간","Live")]], S.src, __L("자료","Source")) : "";
+    var daysH = '<div class="ng-days" role="group" aria-label="' + __L("날짜","Date") + '"><button type="button" class="chip sm" data-ngd="" aria-pressed="' + !S.day + '">' + __L("전체","All") + "</button>" +
       dayKeys.map(function (k) { return '<button type="button" class="chip sm" data-ngd="' + k + '" aria-pressed="' + (S.day === k) + '">' + md(k) + " " + wd(k) + "</button>"; }).join("") + "</div>";
     if (n) {
-      var D = S.day ? days[S.day] : null;
-      // 맨 위는 큰 숫자 하나(±8센트 안에 든 비율), 범례는 색 이름 대신 뜻으로
-      var pct = Math.round(z[0] / n * 100), sw = function (c) { return '<i class="ng-sw" style="background:var(' + c + ')"></i>'; };
-      // 첫 숫자는 변화(앞쪽 녹음 날 절반 대 최근 절반). 날이 2일 미만이면 지금 값만(ux3/journey.md P1-6)
-      var asc = Object.keys(days).filter(function (k) { return days[k].n; }).sort(), half = Math.floor(asc.length / 2), trendH = "";
-      if (!S.day && asc.length >= 2) { var zz = function (L) { var a = 0, t = 0; L.forEach(function (k) { a += days[k].z[0]; t += days[k].n; }); return t ? Math.round(a / t * 100) : null; }, p0 = zz(asc.slice(0, half)), p1 = zz(asc.slice(half));
-        if (p0 != null && p1 != null) { var dd = p1 - p0; var rng = function (a, b) { return a === b ? md(a) : md(a) + "-" + md(b); }; trendH = '<p class="ng-delta">' + (dd === 0 ? __L("앞쪽 녹음 날과 같음","Same as your earlier recording days") : rng(asc[0], asc[half - 1]) + __L("보다 ",": later days are ") + Math.abs(dd) + __L("%p "," pts ") + (dd > 0 ? __L("높음","higher") : __L("낮음","lower"))) + __L(" (최근 "," (recent ") + rng(asc[half], asc[asc.length - 1]) + __L(" ",": ") + p1 + "%)</p>"; } }
-      h += __L('<div class="ng-sum"><p class="ng-kpi"><span>음정 맞은 음</span><b style="--p:','<div class="ng-sum"><p class="ng-kpi"><span>Notes in tune</span><b style="--p:') + (+pct || 0) + '">' + pct + '% <small>(' + z[0] + '/' + n + ')</small></b></p>' + trendH + '<p class="ng-sub">' + (S.day ? md(S.day) + " " : "") + (D ? __L("녹음 ","Recordings: ") + D.recs + __L("개 ",", ") : "") + __L("음 ","Notes: ") + n + __L("개</p>","</p>") +
-        shareBar(z, true).replace('<div class="ng-bar big">', '<div class="ng-bar big" role="img" aria-label="' + esc(__L("±","Within ±") + G1 + __L("센트 안 "," cents: ") + z[0] + __L("개, ",", ") + G1 + __L("에서 "," to ") + G2 + __L("센트 "," cents off: ") + z[1] + __L("개, ",", over ") + G2 + __L("센트 넘음 "," cents off: ") + z[2] + __L("개","")) + '">') +
-        __L('<p class="ng-sub">맞음 ','<p class="ng-sub">In tune ') + z[0] + __L(", 조금 벗어남 ",", a bit off ") + z[1] + __L(", 고칠 음 ",", needs work ") + z[2] + "</p>" + "</div>" + daysH; // 막대 안 숫자는 잘려서 막대 아래 글로(레드팀 3회 18번)
+      var pct = Math.round(z[0] / n * 100), trendH = "";
+      // 변화: 앞쪽 날 절반 대 최근 절반(ux3/journey.md P1-6)
+      var asc = Object.keys(dayN).sort(), half = Math.floor(asc.length / 2);
+      if (!S.day && asc.length >= 2) { var zz = function (Lk) { var a = 0, t = 0; inP.forEach(function (x) { if (Lk.indexOf(x.d) >= 0) { t++; if (Math.abs(x.c) <= G1) a++; } }); return t ? Math.round(a / t * 100) : null; }, p0 = zz(asc.slice(0, half)), p1 = zz(asc.slice(half));
+        if (p0 != null && p1 != null) { var dd = p1 - p0, rng = function (a, b) { return a === b ? md(a) : md(a) + "–" + md(b); }; trendH = '<p class="ng-delta">' + (dd === 0 ? __L("앞쪽 날과 같음","Same as your earlier days") : rng(asc[0], asc[half - 1]) + __L("보다 ",": later days are ") + Math.abs(dd) + __L("%p "," pts ") + (dd > 0 ? __L("높음","higher") : __L("낮음","lower"))) + __L(" (최근 "," (recent ") + rng(asc[half], asc[asc.length - 1]) + __L(" ",": ") + p1 + "%)</p>"; } }
+      var nr = cur.filter(function (x) { return x.s === "r"; }).length, nl = n - nr;
+      h += '<div class="ng-sum"><p class="ng-kpi"><span>' + __L("음정 맞은 음 (±8센트 안)","Notes in tune (within ±8 cents)") + '</span><b style="--p:' + pct + '">' + pct + "% <small>(" + z[0] + "/" + n + ")</small></b></p>" + trendH +
+        shareBar(z, __L("±8센트 안 ","Within ±8 cents: ") + z[0] + ", " + __L("8에서 15센트 ","8 to 15 cents off: ") + z[1] + ", " + __L("15센트 넘음 ","over 15 cents off: ") + z[2]) +
+        '<p class="ng-sub">' + (S.day ? md(S.day) + ". " : "") + __L("맞음 ","In tune ") + z[0] + __L(", 조금 벗어남 ",", a bit off ") + z[1] + __L(", 고칠 음 ",", needs work ") + z[2] + (nr && nl ? __L(". 녹음 ",". Recordings ") + nr + __L(", 실시간 ",", live ") + nl : "") + "</p></div>" + srcH + daysH;
+      h += chips("data-ngc", [["0", __L("기보(F관)","Written (F horn)")], ["1", __L("실음","Sounding")]], S.concert ? "1" : "0", __L("음 이름 기준","Note names"));
+
+      /* 1. 음별 정확도 격자 */
       var oc = keys.map(function (m) { return Math.floor((m + off) / 12); }), hiO = Math.max.apply(null, oc), loO = Math.min.apply(null, oc);
-      h += __L('<div class="ng-tog" role="group" aria-label="음 이름 기준"><button type="button" class="chip sm" data-ngc="0" aria-pressed="','<div class="ng-tog" role="group" aria-label="Note names"><button type="button" class="chip sm" data-ngc="0" aria-pressed="') + !S.concert + __L('">기보(F관)</button><button type="button" class="chip sm" data-ngc="1" aria-pressed="','">Written (F horn)</button><button type="button" class="chip sm" data-ngc="1" aria-pressed="') + S.concert + __L('">실음</button></div>','">Sounding</button></div>');
-      // 작은 화면: 음 격자 대신 많이 벗어난 음 5개를 줄로(비평 15). 넓은 화면은 격자 그대로
-      var worst = keys.filter(function (m) { return by[m].c.length >= 3; }).map(function (m) { var e = by[m]; return { m: m, e: e, mc: med(e.c), bad: e.z[2] / (e.z[0] + e.z[1] + e.z[2]) }; }).sort(function (a, b) { return b.bad - a.bad || Math.abs(b.mc) - Math.abs(a.mc); }).slice(0, 5);
-      if (worst.length) { h += __L('<ol class="ng-worst" aria-label="많이 벗어난 음">','<ol class="ng-worst" aria-label="Notes furthest off">'); worst.forEach(function (w) { h += '<li><button type="button" class="ng-wr" data-ngm="' + w.m + '"><span class="ng-wn">' + esc(nm(w.m + off)) + '</span>' + gauge(w.e) + '<span class="ng-wt">' + (w.mc > 0 ? "+" : "") + Math.round(w.mc) + __L("센트, 고칠 음 "," cents, needs work ") + Math.round(w.bad * 100) + "% (" + w.e.z[2] + "/" + w.e.c.length + ")</span></button></li>"; }); h += "</ol>"; }
-      h += '<details class="ng-all"' + (S.allOpen || (typeof matchMedia !== "undefined" && matchMedia("(min-width:744px)").matches) ? " open" : "") + __L('><summary>모든 음 보기</summary><div class="ng-grid" role="grid" aria-label="반음별 음정">','><summary>Show all notes</summary><div class="ng-grid" role="grid" aria-label="Pitch by semitone">');
+      h += legend3() + '<div class="ng-grid" role="grid" aria-label="' + __L("반음별 음정","Pitch by semitone") + '">';
       for (var o = hiO; o >= loO; o--) {
         for (var p = 0; p < 12; p++) {
           var shown = o * 12 + p, m = shown - off, e = by[m];
-          if (!e) { h += '<div class="ng-c off"><span>' + esc(nm(shown)) + "</span></div>"; continue; }
-          var mc = med(e.c);
-          h += '<button type="button" class="ng-c' + (S.sel === m ? " sel" : "") + '" data-ngm="' + m + '" aria-label="' + esc(nm(shown) + __L(", 음 ",", ") + e.c.length + __L("개, 보통 "," notes, usually ") + (mc > 0 ? "+" : "") + Math.round(mc) + __L("센트"," cents")) + '"><span>' + esc(nm(shown)) + "</span>" + gauge(e) + "</button>";
+          if (!e) { h += '<div class="ng-c off" aria-hidden="true"><span class="ng-cn">' + esc(nm(shown)) + "</span></div>"; continue; }
+          var mc = med(e.c), k = e.c.length, sh = Math.round(e.z[0] / k * 100), g = k < 3 ? "few" : "g" + grade(e);
+          h += '<button type="button" class="ng-c ' + g + (S.sel === m ? " sel" : "") + '" data-ngm="' + m + '" data-tip="' + esc(nm(shown) + ": " + sh + __L("% 맞음, 보통 ","% in tune, typical ") + sg(mc) + __L("센트, 음 "," c, ") + k + __L("개"," notes")) + '" aria-label="' + esc(nm(shown) + __L(", 음 ",", ") + k + __L("개, 맞음 "," notes, in tune ") + sh + __L("%, 보통 ","%, usually ") + sg(mc) + __L("센트"," cents")) + '">' + (g === "g2" ? '<svg class="ng-hx" aria-hidden="true"><rect width="100%" height="100%" fill="url(#ngHatch)"/></svg>' : "") + '<span class="ng-cn">' + esc(nm(shown)) + "</span>" + needle(mc) + '<span class="ng-cv">' + sh + '<small>%</small></span><span class="ng-ck">' + k + "</span></button>";
         }
       }
-      h += "</div></details>";
-      var za = [0, 0, 0]; Object.keys(CA.by).forEach(function (k) { for (var i = 0; i < 3; i++) za[i] += CA.by[k].z[i]; });
-      var na = za[0] + za[1] + za[2];
-      h += '';
-      var se = S.sel != null && by[S.sel];
-      if (se) {
-        var c2 = med(se.c), k = se.c.length, wn = nm(S.sel), cn = nm(S.sel - 7);
-        h += __L('<div class="ng-det"><div class="ng-head"><b>기보 ','<div class="ng-det"><div class="ng-head"><b>Written ') + esc(wn) + __L("</b><span>실음 ","</b><span>Sounding ") + esc(cn) + __L(", 음 ",", ") + k + __L("개</span></div>"," notes</span></div>") + shareBar(se.z, true) +
-          __L("<p>±","<p>Within ±") + G1 + __L("센트 안 "," cents: ") + Math.round(100 * se.z[0] / k) + "% (" + se.z[0] + "/" + k + "). " +
-          verdict(se, c2, S.sel) +
-          (k < 5 ? __L(" 아직 음이 "," Only ") + k + __L("개뿐, 판단 보류."," notes so far, so no verdict yet.") : "") + "</p>" +
-          '<button type="button" class="btn small" data-ngplay="' + S.sel + __L('">이 음 기준음 듣기</button></div>','">Hear this reference note</button></div>');
+      h += "</div>\u0001DET\u0001";
+
+      /* 2. 경향: 음역별, 음별(높게 나는 음 위, 낮게 나는 음 아래) */
+      var regs = []; for (o = hiO; o >= loO; o--) { var rc = []; cur.forEach(function (x) { if (Math.floor((x.m + off) / 12) === o) rc.push(x.c); }); if (rc.length >= 5) { var rv = med(rc); regs.push({ k: nm(o * 12) + "–" + NAMES[11] + (o - 1), v: rv, n: rc.length, tip: nm(o * 12) + "–" + NAMES[11] + (o - 1) + ": " + __L("보통 ","typical ") + sg(rv) + __L("센트, 음 "," c, ") + rc.length + __L("개"," notes") }); } }
+      var nt = keys.filter(function (m) { return by[m].c.length >= 3; }).map(function (m) { var v = med(by[m].c); return { m: m, k: nm(m + off), v: v, n: by[m].c.length, tip: nm(m + off) + ": " + __L("보통 ","typical ") + sg(v) + __L("센트, 맞음 "," c, in tune ") + Math.round(by[m].z[0] / by[m].c.length * 100) + "%, " + by[m].c.length + __L("개"," notes") }; });
+      var hiN = nt.filter(function (r) { return r.v > G1 / 2; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 5), loN = nt.filter(function (r) { return r.v < -G1 / 2; }).sort(function (a, b) { return b.v - a.v; }).slice(-5);
+      if (regs.length > 1 || hiN.length || loN.length) {
+        h += '<div class="ng-sec"><h4 class="ng-h">' + __L("경향","Tendency") + "</h4>";
+        if (regs.length > 1) h += '<p class="ng-cap">' + __L("음역별 보통 센트","Typical cents by register") + "</p>" + divBars(regs, __L("음역별 보통 쏠림","Typical offset by register"));
+        if (hiN.length || loN.length) h += '<p class="ng-cap">' + __L("높게 나는 음, 낮게 나는 음","Notes that run sharp, notes that run flat") + "</p>" + divBars(hiN.concat(loN), __L("높게 나는 음과 낮게 나는 음","Notes running sharp and flat"));
+        h += "</div>";
       }
-    } else h += daysH + __L('<p class="rv-ex">이 날 음정 기록 없음.</p>','<p class="rv-ex">No pitch data for this day.</p>');
-    host.innerHTML = h + "</div>";
-    Array.prototype.forEach.call(host.querySelectorAll("[data-ngd]"), function (b) { b.addEventListener("click", function () { S.day = b.getAttribute("data-ngd") || null; S.sel = null; render(host); }); });
-    Array.prototype.forEach.call(host.querySelectorAll("[data-ngc]"), function (b) { b.addEventListener("click", function () { S.concert = b.getAttribute("data-ngc") === "1"; render(host); }); });
-    var nga = host.querySelector(".ng-all"); if (nga) nga.addEventListener("toggle", function () { S.allOpen = nga.open; });
-    Array.prototype.forEach.call(host.querySelectorAll("[data-ngm]"), function (b) { b.addEventListener("click", function () { var m = +b.getAttribute("data-ngm"); S.sel = S.sel === m ? null : m; render(host); }); });
+
+      /* 3. 추이: 최근 30일, 고른 음과 전체 */
+      var firstD = base.reduce(function (a, x) { return x.d < a ? x.d : a; }, "9999"), span = Math.max(14, Math.min(30, Math.round((Date.now() - new Date(firstD + "T12:00:00").getTime()) / 864e5) + 2)), tdays = []; for (var i = span - 1; i >= 0; i--) tdays.push(dayKey(Date.now() - i * 864e5));
+      var t30 = base.filter(function (x) { return x.d >= tdays[0]; });
+      var perDay = function (L2) { var D = {}; L2.forEach(function (x) { (D[x.d] = D[x.d] || []).push(x.c); }); var mc2 = {}, sh2 = {}, nn = {}; Object.keys(D).forEach(function (d) { mc2[d] = med(D[d]); sh2[d] = D[d].filter(function (c) { return Math.abs(c) <= G1; }).length / D[d].length * 100; nn[d] = D[d].length; }); return { mc: mc2, sh: sh2, n: nn }; };
+      var ovr = perDay(t30), nd = Object.keys(ovr.n).length;
+      if (nd >= 2) {
+        var selS = S.sel != null ? perDay(t30.filter(function (x) { return x.m === S.sel; })) : null; if (selS && !Object.keys(selS.n).length) selS = null;
+        var sk = S.sel != null ? nm(S.sel + off) : "", allK = __L("전체","All");
+        var serC = selS ? [{ k: allK, pts: ovr.mc, n: ovr.n, cls: "ng-l0" }, { k: sk, pts: selS.mc, n: selS.n, cls: "ng-l1" }] : [{ k: allK, pts: ovr.mc, n: ovr.n, cls: "ng-l1" }];
+        var serS = selS ? [{ k: allK, pts: ovr.sh, cls: "ng-l0" }, { k: sk, pts: selS.sh, cls: "ng-l1" }] : [{ k: allK, pts: ovr.sh, cls: "ng-l1" }];
+        var vals = []; serC.forEach(function (se) { Object.keys(se.pts).forEach(function (d) { vals.push(Math.abs(se.pts[d])); }); });
+        var ym = Math.max(20, Math.min(50, Math.ceil(Math.max.apply(null, vals) / 10) * 10));
+        var pctf = function (v) { return Math.round(v) + "%"; };
+        h += '<div class="ng-sec"><h4 class="ng-h">' + __L("추이","Trend") + (selS ? " <span>" + esc(sk) + __L("와 전체"," and all notes") + "</span>" : "") + "</h4>" +
+          '<p class="ng-cap">' + __L("날마다 보통 센트, 최근 " + span + "일","Typical cents per day, last " + span + " days") + "</p>" + lineChart(tdays, serC, [-ym, ym], { h: 150, band: [-G1, G1], ticks: [-ym, 0, ym], zero: 0, fmt: sg, aria: __L("날짜별 보통 센트","Typical cents per day") }) +
+          '<p class="ng-cap">' + __L("날마다 ±8센트 안 비율","Share within ±8 cents per day") + "</p>" + lineChart(tdays, serS, [0, 100], { h: 100, ticks: [0, 50, 100], zero: 0, fmt: pctf, aria: __L("날짜별 맞은 비율","In-tune share per day") }) + "</div>";
+      }
+
+      /* 4. 음량과 음정: 실시간 자료만 dB가 있음. 20음 넘을 때만 그림 */
+      var lv = inP.filter(function (x) { return x.s === "l" && x.db != null && (!S.day || x.d === S.day); });
+      var useSel = S.sel != null && lv.filter(function (x) { return x.m === S.sel; }).length >= 20, pool = useSel ? lv.filter(function (x) { return x.m === S.sel; }) : lv;
+      if (pool.length >= 20) {
+        var mnote = {}; if (!useSel) { var gm = {}; pool.forEach(function (x) { (gm[x.m] = gm[x.m] || []).push(x.c); }); Object.keys(gm).forEach(function (k2) { mnote[k2] = med(gm[k2]); }); }
+        var pts = pool.map(function (x) { var y = useSel ? x.c : x.c - mnote[x.m]; return { x: x.db, y: y, tip: nm(x.m + off) + ", " + x.db.toFixed(1) + " dBFS, " + sg(x.c) + __L("센트"," c") + (useSel ? "" : " (" + sg(y) + __L(" 그 음 보통 대비"," vs its usual") + ")") }; });
+        var fit = ols(pts), sorted = pts.slice().sort(function (a, b) { return a.x - b.x; }), t3 = Math.floor(sorted.length / 3);
+        var bins = [[__L("작게","Soft"), sorted.slice(0, t3)], [__L("보통","Medium"), sorted.slice(t3, sorted.length - t3)], [__L("크게","Loud"), sorted.slice(sorted.length - t3)]].map(function (b) { var v = med(b[1].map(function (q) { return q.y; })), lo = b[1][0].x, hi2 = b[1][b[1].length - 1].x; return { k: b[0], v: v, n: b[1].length, tip: b[0] + " (" + Math.round(lo) + __L("~"," to ") + Math.round(hi2) + " dBFS): " + __L("보통 ","typical ") + sg(v) + __L("센트, 음 "," c, ") + b[1].length + __L("개"," notes") }; });
+        var ylab = useSel ? __L("센트","cents") : __L("센트, 그 음 보통 대비","cents vs each note's usual");
+        var slope = fit ? fit.b * 10 : 0;
+        h += '<div class="ng-sec"><h4 class="ng-h">' + __L("음량과 음정","Volume and pitch") + " <span>" + (useSel ? esc(nm(S.sel + off)) : __L("모든 음","All notes")) + ", " + pool.length + __L("개"," notes") + "</span></h4>" +
+          '<p class="ng-slope"><b>' + f1(slope) + "</b> " + __L("센트, 10 dB 커질 때마다","cents per 10 dB louder") + (fit ? '<span class="ng-r">r ' + fit.r.toFixed(2) + "</span>" : "") + "</p>" +
+          scatter(pts, fit, __L("음량 대 센트 산점도, 기울기 ","Volume versus cents, slope ") + f1(slope) + __L("센트/10 dB"," cents per 10 dB"), ylab) +
+          '<p class="ng-cap">' + __L("음량 셋으로 나눈 보통 센트","Typical cents by loudness third") + "</p>" + divBars(bins, __L("작게, 보통, 크게 셋의 보통 센트","Typical cents for soft, medium, loud")) + "</div>";
+      }
+
+      /* 고른 음 자세히 */
+      var detH = "", se = S.sel != null && by[S.sel];
+      if (se) {
+        var c2 = med(se.c), kk = se.c.length;
+        detH = '<div class="ng-det"><div class="ng-head"><b>' + __L("기보 ","Written ") + esc(nm(S.sel)) + "</b><span>" + __L("실음 ","Sounding ") + esc(nm(S.sel - 7)) + ", " + kk + __L("개"," notes") + "</span></div>" + shareBar(se.z, "") +
+          "<p>" + __L("±","Within ±") + G1 + __L("센트 안 "," cents: ") + Math.round(100 * se.z[0] / kk) + "% (" + se.z[0] + "/" + kk + "). " + verdict(se, c2, S.sel) +
+          (kk < 5 ? __L(" 아직 음이 "," Only ") + kk + __L("개뿐, 판단 보류."," notes so far, so no verdict yet.") : "") + "</p>" +
+          '<button type="button" class="btn small" data-ngplay="' + S.sel + '">' + __L("이 음 기준음 듣기","Hear this reference note") + "</button></div>";
+      }
+      h = h.replace("\u0001DET\u0001", detH);
+    } else h += srcH + daysH + '<p class="rv-ex">' + __L("이 날 음정 기록 없음.","No pitch data for this day.") + "</p>";
+    host.innerHTML = h + '<div class="ng-tip" role="status" hidden></div></div>';
+    wire(host);
+  }
+  function wire(host) {
+    var q = function (sel, fn) { Array.prototype.forEach.call(host.querySelectorAll(sel), function (b) { b.addEventListener("click", function (ev) { fn(b, ev); }); }); };
+    q("[data-ngd]", function (b) { S.day = b.getAttribute("data-ngd") || null; render(host); });
+    q("[data-ngs]", function (b) { S.src = b.getAttribute("data-ngs"); render(host); });
+    q("[data-ngc]", function (b) { S.concert = b.getAttribute("data-ngc") === "1"; render(host); });
+    q("[data-ngm]", function (b) { var m = +b.getAttribute("data-ngm"); S.sel = S.sel === m ? null : m; var y = window.scrollY; render(host); window.scrollTo(0, y); });
     var pb = host.querySelector("[data-ngplay]"); if (pb) pb.addEventListener("click", function () { play(+pb.getAttribute("data-ngplay") - 7); });
+    var card = host.querySelector(".ng"), tip = host.querySelector(".ng-tip"); if (!card || !tip) return;
+    var show = function (el, ev) { var t = el.getAttribute("data-tip"); if (!t) return; tip.textContent = t; tip.hidden = false; var r = card.getBoundingClientRect(), x = (ev.clientX || 0) - r.left, y = (ev.clientY || 0) - r.top, w = tip.offsetWidth; tip.style.left = Math.max(0, Math.min(r.width - w, x - w / 2)) + "px"; tip.style.top = Math.max(0, y - tip.offsetHeight - 12) + "px"; };
+    card.addEventListener("pointermove", function (ev) { var el = ev.target.closest && ev.target.closest("[data-tip]"); if (el && card.contains(el)) show(el, ev); else tip.hidden = true; });
+    card.addEventListener("pointerleave", function () { tip.hidden = true; });
+    card.addEventListener("pointerdown", function (ev) { var el = ev.target.closest && ev.target.closest("[data-tip]"); if (el && ev.pointerType !== "mouse") show(el, ev); });
+  }
+  /* 모양: 잉크와 회색만. 칸 등급은 빈 칸(고름), 회색 면(섞임), 빗금(자주 벗어남), 점선 테두리(음 3개 미만) */
+  function style() {
+    if (document.getElementById("ng-style")) return; var st = document.createElement("style"); st.id = "ng-style";
+    st.textContent = [
+      ".ng{--ng-ink:var(--text,#121212);--ng-bg:var(--bg,#FFFFFF);--ng-g1:var(--line,#DADADA);--ng-g2:var(--text3,#6B6B6B);position:relative}",
+      "@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ng{--ng-ink:var(--text,#EEEBE4);--ng-bg:var(--bg,#111214)}}",
+      ".ng .ng-sum{margin-bottom:6px}.ng .ng-sb{display:block;width:100%;height:12px;margin:6px 0 4px}",
+      ".ng .ng-s0{fill:var(--ng-ink)}.ng .ng-s1{fill:var(--ng-g2)}.ng .ng-s2{fill:url(#ngHatch);stroke:var(--ng-ink);stroke-width:1}",
+      ".ng .ng-hbg{fill:var(--ng-bg)}.ng .ng-hln{stroke:var(--ng-ink);stroke-width:1.2}",
+      ".ng .ng-tog{display:flex;gap:6px;margin:10px 0 6px;flex-wrap:wrap}.ng .ng-days{margin:6px 0 4px}",
+      ".ng .ng-leg{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 8px;font-size:13px;color:var(--text2)}.ng .ng-leg span{display:inline-flex;align-items:center;gap:6px}",
+      ".ng .ng-leg i{display:inline-block;width:14px;height:14px;border:1px solid var(--ng-ink);box-sizing:border-box}.ng .ng-leg .ng-k0{background:var(--ng-bg)}.ng .ng-leg .ng-k1{background:var(--ng-g1)}",
+      ".ng .ng-leg .ng-k2{background:var(--ng-bg) url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3Cpath d='M-1 1l2-2M0 5l5-5M4 6l2-2' stroke='%23777' stroke-width='1.2'/%3E%3C/svg%3E\")}",
+      ".ng .ng-leg .ng-k3{border-style:dashed;border-color:var(--ng-g2)}",
+      ".ng .ng-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;margin:0}",
+      "@media (max-width:640px){.ng .ng-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}",
+      ".ng .ng-c{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 5px;min-width:0;min-height:76px;border-radius:0!important;background:var(--ng-bg);border:var(--hl,1px) solid var(--ng-g1);font:inherit;color:var(--ng-ink);cursor:pointer;overflow:hidden}",
+      ".ng .ng-c>*{position:relative}.ng .ng-c .ng-hx{position:absolute;inset:0;width:100%;height:100%;opacity:.45}",
+      ".ng .ng-c.g0{border-color:var(--ng-g2)}.ng .ng-c.g1{background:var(--ng-g1);border-color:var(--ng-g1)}.ng .ng-c.g2{border-color:var(--ng-ink)}.ng .ng-c.few{border-style:dashed;border-color:var(--ng-g2);color:var(--text2)}",
+      ".ng .ng-c.sel{outline:2px solid var(--ng-ink);outline-offset:1px;z-index:1}",
+      ".ng .ng-c.off{background:transparent;border-color:transparent;cursor:default;min-height:0;padding:2px 0}.ng .ng-c.off .ng-cn{color:var(--text3);opacity:.55;font-weight:400}",
+      ".ng .ng-cn{font-family:\"MusicSym\",\"Helvetica Neue\",Helvetica,\"InterFB\",Arial,sans-serif;font-size:13px;font-weight:500;line-height:16px;white-space:nowrap}",
+      ".ng .ng-cv{font-family:var(--f-num,\"Helvetica Neue\",Helvetica,Arial,sans-serif);font-variant-numeric:tabular-nums;font-size:13px;line-height:15px;font-weight:500}.ng .ng-cv small{font-size:10px;font-weight:400}",
+      ".ng .ng-ck{font-variant-numeric:tabular-nums;font-size:10px;line-height:12px;color:var(--text3)}.ng .ng-c.g1 .ng-ck{color:var(--text2)}",
+      ".ng .ng-c.g2 .ng-cn,.ng .ng-c.g2 .ng-cv,.ng .ng-c.g2 .ng-ck{background:var(--ng-bg);padding:0 3px}",
+      "@media (min-width:641px){.ng .ng-c{min-height:84px}}",
+      ".ng .ng-band{fill:var(--ng-g1);opacity:.7}.ng .ng-ax{stroke:var(--ng-g2);stroke-width:1;fill:none}.ng .ng-ax0{stroke:var(--ng-ink);stroke-width:1;opacity:.8}.ng line.ng-gl{stroke:var(--ng-g1);stroke-width:1}",
+      ".ng .ng-pin{fill:var(--ng-ink)}",
+      ".ng .ng-sec{border-top:var(--hl,1px) solid var(--line);margin-top:18px;padding-top:12px}",
+      ".ng .ng-h{font-family:var(--f-disp,\"Imbue\",Georgia,serif);font-weight:600;font-size:22px;line-height:1.1;margin:0 0 4px;color:var(--ng-ink)}.ng .ng-h span{font-family:var(--f-ui,\"Helvetica Neue\",Helvetica,Arial,sans-serif);font-size:13px;font-weight:500;color:var(--text3);margin-left:6px}",
+      ".ng .ng-cap{font-size:13px;line-height:18px;color:var(--text2);margin:10px 0 2px;font-weight:500}",
+      ".ng svg.ng-db,.ng svg.ng-lc,.ng svg.ng-sc{display:block;width:100%;height:auto;overflow:visible;font-family:var(--f-num,\"Helvetica Neue\",Helvetica,\"InterFB\",Arial,sans-serif);font-variant-numeric:tabular-nums}",
+      ".ng .ng-tl{font-family:\"MusicSym\",\"Helvetica Neue\",Helvetica,\"InterFB\",Arial,sans-serif;font-size:13px;font-weight:500;fill:var(--ng-ink)}.ng .ng-tv{font-size:13px;font-weight:500;fill:var(--ng-ink)}.ng .ng-tn{font-size:11px;font-weight:400;fill:var(--text3)}",
+      ".ng .ng-tick{font-size:10.5px;fill:var(--text3)}.ng .ng-dl{font-family:\"MusicSym\",\"Helvetica Neue\",Helvetica,\"InterFB\",Arial,sans-serif;font-size:11px;font-weight:500;fill:var(--ng-ink)}",
+      ".ng .ng-up{fill:var(--ng-ink)}.ng .ng-dn{fill:var(--ng-bg);stroke:var(--ng-ink);stroke-width:1}",
+      ".ng .ng-hitr{fill:transparent}.ng .ng-hit{cursor:pointer}.ng .ng-hit:hover .ng-hitr{fill:var(--ng-g1);opacity:.35}",
+      ".ng .ng-l1{fill:none;stroke:var(--ng-ink);stroke-width:2;stroke-linejoin:round}.ng .ng-l1-p{fill:var(--ng-ink);stroke:var(--ng-bg);stroke-width:1.5}",
+      ".ng .ng-l0{fill:none;stroke:var(--ng-g2);stroke-width:1.5;stroke-dasharray:4 3}.ng .ng-l0-p{fill:var(--ng-bg);stroke:var(--ng-g2);stroke-width:1.5}",
+      ".ng .ng-col{fill:transparent}.ng .ng-col:hover{fill:var(--ng-g1);opacity:.35}",
+      ".ng .ng-dot{fill:none;stroke:var(--ng-g2);stroke-width:1;opacity:.75}.ng .ng-dot:hover{fill:var(--ng-ink);opacity:1}.ng .ng-fit{stroke:var(--ng-ink);stroke-width:2}",
+      ".ng .ng-slope{margin:8px 0 2px;font-size:15px;color:var(--text2);font-variant-numeric:tabular-nums}.ng .ng-slope b{font-family:var(--f-num,\"Helvetica Neue\",Helvetica,Arial,sans-serif);font-size:28px;line-height:32px;font-weight:500;color:var(--ng-ink);margin-right:4px}.ng .ng-r{margin-left:12px;font-size:13px;color:var(--text3)}",
+      ".ng .ng-det{border-top:var(--hl,1px) solid var(--ng-ink);margin-top:18px;padding:12px 0 0;background:transparent;border-radius:0}",
+      ".ng .ng-tip{position:absolute;z-index:4;pointer-events:none;background:var(--ng-ink);color:var(--ng-bg);font-size:13px;line-height:18px;padding:6px 9px;max-width:260px;font-variant-numeric:tabular-nums;border-radius:0}"
+    ].join("\n");
+    document.head.appendChild(st);
   }
   /* 배음 고유 음정: 이 음을 열린 손가락 번호(F관 0, B♭관 T0)로 불면 몇 번 배음이라 평균율보다 얼마나 다른지(trend.js harmOf, 계산값).
      잰 쏠림과 같은 쪽이고 그 차이가 8센트 안이면 연주 실수보다 악기 경향일 수 있다고 말함. 실제 손가락 번호는 모르므로 가정을 밝힘 */
@@ -19031,7 +19208,109 @@ window.HornRefBench = {"date": "2026-11-01", "method": __L("녹음마다 그 녹
     host.innerHTML = h;
   }
   window.__bench = { now: benchNow, card: benchCard };
-  window.__noteGrid = { mount: function (host) { var box = document.createElement("div"); box.className = "ng-host"; host.insertBefore(box, host.querySelector(".rv-more")); render(box); var bx = document.createElement("div"); bx.className = "bench-host"; box.after(bx); try { benchCard(bx); } catch (e) {} }, collect: collect, S: S };
+  window.__noteGrid = { mount: function (host) { style(); var box = document.createElement("div"); box.className = "ng-host"; host.insertBefore(box, host.querySelector(".rv-more")); render(box); var bx = document.createElement("div"); bx.className = "bench-host"; box.after(bx); try { benchCard(bx); } catch (e) {} }, collect: collect, S: S };
+})();
+
+/* 실시간 듣기 (11-07 18:04 사용자: 켜 두면 연주를 분석해 음정을 파악, TE Tuner처럼)
+   켜 두면 어느 화면에서든 위쪽 막대에 지금 음과 센트가 보이고, 0.3초 넘게 이어진 음마다
+   [기보 midi, 중앙 센트, 안착 ms, 중앙 음량 dBFS, 길이 초]를 모아 하루 문서(live/날짜)에 저장합니다. 음별 음정 판(notegrid)이 이 자료도 씁니다.
+   녹음 중(window.__hornRec)에는 마이크를 녹음에 넘기고 멈췄다가, 녹음이 끝나면 다시 듣습니다. 소리는 기기 밖으로 보내지 않습니다 */
+(function () {
+  "use strict";
+  var NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  var GATE = -55, MIN_NOTE = 0.3, SETTLE_C = 10;
+  var S = { on: false, stream: null, ctx: null, an: null, buf: null, raf: 0, paused: false, cur: null, notes: [], sec: 0, t0: 0, saveT: 0, db: null, day: "" };
+  function today() { return new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10); }
+  function ref() { return window.__REF ? window.__REF() : 442; }
+  function sh() { return window.__SH ? window.__SH() : 7; }
+  function wk() { var s = 0; try { s = +localStorage.getItem("horn-proto-written") || 0; } catch (e) {} return s; }
+  function nm(m) { return NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); }
+  function med(a) { var b = a.slice().sort(function (x, y) { return x - y; }), n = b.length; return n ? (n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2) : 0; }
+  // YIN (호른 음역 50~1000 Hz)
+  function yin(buf, sr) {
+    var N = buf.length, H = N >> 1, d = new Float32Array(H), tmin = Math.floor(sr / 1000), tmax = Math.min(H - 1, Math.floor(sr / 50)), run = 0, tau, i;
+    for (tau = 1; tau <= tmax; tau++) { var s = 0; for (i = 0; i < H; i++) { var df = buf[i] - buf[i + tau]; s += df * df; } d[tau] = s; }
+    d[0] = 1; for (tau = 1; tau <= tmax; tau++) { run += d[tau]; d[tau] = run ? d[tau] * tau / run : 1; }
+    for (tau = tmin; tau <= tmax; tau++) {
+      if (d[tau] < 0.15) { while (tau + 1 <= tmax && d[tau + 1] < d[tau]) tau++; var a = d[tau - 1], b = d[tau], c = d[tau + 1] != null ? d[tau + 1] : b, den = 2 * (2 * b - a - c), x = den ? tau + (c - a) / den : tau; return { f: sr / x, conf: 1 - b }; }
+    }
+    return null;
+  }
+  async function dbOf() { if (S.db) return S.db; try { S.db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { S.db = null; } return S.db; }
+  async function save() {
+    if (!S.notes.length) return; var day = today(), db = await dbOf(), add = S.notes.splice(0), sec = S.sec; S.sec = 0;
+    var key = "horn-live-" + day, prev = null; try { prev = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) {}
+    var doc = prev && prev.date === day ? prev : { date: day, notes: [], sec: 0 }; doc.notes = doc.notes.concat(add).slice(-4000); doc.sec = Math.round((doc.sec || 0) + sec); doc.ref = ref(); doc.at = new Date().toISOString();
+    try { localStorage.setItem(key, JSON.stringify(doc)); } catch (e) {}
+    if (db) try { await db.doc("live/" + day).set(doc); } catch (e) {}
+    try { if (window.__live.onSave) window.__live.onSave(doc); } catch (e) {}
+  }
+  function endNote(t) {
+    var c = S.cur; S.cur = null; if (!c) return; var dur = t - c.t0; if (dur < MIN_NOTE || c.cs.length < 4) return;
+    var settle = null; for (var i = 0; i < c.cs.length; i++) { if (Math.abs(c.cs[i] - med(c.cs)) <= SETTLE_C) { settle = Math.round(c.ts[i] * 1000); break; } }
+    var cm = Math.round(med(c.cs.slice(Math.floor(c.cs.length * 0.2)))); // 앞 20%(올라붙는 부분)는 빼고 가운데 값
+    var dbm = Math.round(med(c.ds) * 10) / 10; S.notes.push([c.m, cm, settle, dbm, Math.round(dur * 100) / 100]); S.view.count++; S.view.last.unshift([c.m, cm]); if (S.view.last.length > 12) S.view.last.pop(); paintLog();
+  }
+  function frame() {
+    if (!S.on) return; S.raf = requestAnimationFrame(frame);
+    if (window.__hornRec) { if (!S.paused) pause(); return; } else if (S.paused) { resume(); return; }
+    if (!S.an) return; S.an.getFloatTimeDomainData(S.buf);
+    var t = S.ctx.currentTime, sum = 0; for (var i = 0; i < S.buf.length; i++) sum += S.buf[i] * S.buf[i];
+    var db = 10 * Math.log10(sum / S.buf.length + 1e-12), r = db > GATE ? yin(S.buf, S.ctx.sampleRate) : null;
+    if (S.lastT) S.sec += Math.min(0.2, t - S.lastT); S.lastT = t;
+    if (!r || r.conf < 0.8) { if (S.cur && t - S.cur.tl > 0.12) endNote(t); paint(null); return; }
+    var midi = 69 + 12 * Math.log(r.f / ref()) / Math.LN2, m = Math.round(midi), cents = (midi - m) * 100, wm = m + sh();
+    if (S.cur && S.cur.m !== wm) { if (t - S.cur.tl > 0.08) endNote(t); else { paint({ m: wm, c: cents, f: r.f }); return; } }
+    if (!S.cur) S.cur = { m: wm, t0: t, tl: t, cs: [], ts: [], ds: [] };
+    S.cur.tl = t; S.cur.cs.push(cents); S.cur.ts.push(t - S.cur.t0); S.cur.ds.push(db);
+    paint({ m: wm, c: cents, f: r.f });
+    if (Date.now() - S.saveT > 15000) { S.saveT = Date.now(); save(); }
+  }
+  async function open() {
+    S.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+    S.ctx = new (window.AudioContext || window.webkitAudioContext)(); try { await S.ctx.resume(); } catch (e) {}
+    var src = S.ctx.createMediaStreamSource(S.stream); S.an = S.ctx.createAnalyser(); S.an.fftSize = 4096; src.connect(S.an); S.buf = new Float32Array(2048); S.lastT = 0;
+  }
+  function close() { try { S.stream && S.stream.getTracks().forEach(function (x) { x.stop(); }); } catch (e) {} try { S.ctx && S.ctx.close(); } catch (e) {} S.stream = null; S.ctx = null; S.an = null; }
+  function pause() { S.paused = true; if (S.cur) endNote(S.ctx ? S.ctx.currentTime : 0); close(); paint(null, true); }
+  async function resume() { S.paused = false; try { await open(); } catch (e) { stop(); } }
+  async function start() {
+    if (S.on) return; try { await open(); } catch (e) { msg(e && e.name === "NotAllowedError" ? "Microphone blocked. Allow it in device settings" : "Could not open the microphone"); return; }
+    S.on = true; S.saveT = Date.now(); S.view = { count: 0, last: [] }; document.body.classList.add("live-on"); bar().hidden = false; paintLog(); frame(); setBtn();
+  }
+  async function stop() { if (!S.on) return; S.on = false; cancelAnimationFrame(S.raf); if (S.cur && S.ctx) endNote(S.ctx.currentTime); close(); await save(); document.body.classList.remove("live-on"); bar().hidden = true; setBtn(); }
+  /* 화면: 위쪽 막대(지금 음, 센트 바늘, 들은 음 수) */
+  var B = null, els = {};
+  function bar() {
+    if (B) return B; B = document.createElement("div"); B.id = "liveBar"; B.hidden = true; B.setAttribute("role", "status"); B.setAttribute("aria-live", "off");
+    B.innerHTML = '<b class="lv-note">–</b><div class="lv-scale"><i class="lv-mid"></i><i class="lv-zone"></i><i class="lv-pin"></i></div><span class="lv-c"></span><button type="button" class="lv-log" aria-label="Notes heard">0</button><button type="button" class="lv-stop">Stop</button><div class="lv-list" hidden></div>';
+    document.body.appendChild(B); ["note", "pin", "c", "log", "stop", "list"].forEach(function (k) { els[k] = B.querySelector(".lv-" + k); });
+    try { new ResizeObserver(function () { document.documentElement.style.setProperty("--lvh", (B.offsetHeight + 8) + "px"); }).observe(B); } catch (e) {}
+    els.stop.addEventListener("click", stop); els.log.addEventListener("click", function () { els.list.hidden = !els.list.hidden; });
+    return B;
+  }
+  function paint(p, paused) {
+    bar(); if (paused) { els.note.textContent = "–"; els.c.textContent = "Paused while recording"; els.pin.style.left = "50%"; return; }
+    if (!p) { els.note.textContent = "–"; els.c.textContent = ""; els.pin.style.opacity = ".25"; return; }
+    var c = Math.max(-50, Math.min(50, p.c)); els.note.textContent = nm(p.m + wk()); els.c.textContent = (p.c >= 0 ? "+" : "−") + Math.abs(Math.round(p.c)); els.pin.style.opacity = "1"; els.pin.style.left = (50 + c) + "%";
+    B.classList.toggle("lv-good", Math.abs(p.c) <= 8);
+  }
+  function paintLog() {
+    bar(); els.log.textContent = String(S.view ? S.view.count : 0);
+    els.list.innerHTML = ""; (S.view ? S.view.last : []).forEach(function (q) { var s = document.createElement("span"); s.textContent = nm(q[0] + wk()) + " " + (q[1] >= 0 ? "+" : "−") + Math.abs(q[1]); if (Math.abs(q[1]) <= 8) s.className = "ok"; els.list.appendChild(s); });
+  }
+  function msg(t) { try { if (window.__hornApi && window.__hornApi.toast) window.__hornApi.toast(t); else alert(t); } catch (e) {} }
+  /* 머리 단추: 모든 화면 제목 옆 */
+  var HB = null;
+  function setBtn() { if (!HB) return; HB.setAttribute("aria-pressed", String(S.on)); HB.textContent = S.on ? "Listening" : "Listen"; }
+  function mountBtn() { var h = document.querySelector(".wrap header"); if (!h || document.getElementById("liveBtn")) return; HB = document.createElement("button"); HB.type = "button"; HB.id = "liveBtn"; HB.className = "btn small live-btn"; h.appendChild(HB); HB.addEventListener("click", function () { S.on ? stop() : start(); }); setBtn(); }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden" && S.on) save(); });
+  window.addEventListener("pagehide", function () { if (S.on) save(); });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountBtn); else mountBtn();
+  // 음별 음정 판에 넘길 자료: 이 기기에 남은 하루 문서들 (동기화 뒤에는 db 문서가 채움)
+  function days() { var out = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^horn-live-\d{4}-\d\d-\d\d$/.test(k)) { var d = JSON.parse(localStorage.getItem(k)); if (d && d.notes) out.push(d); } } } catch (e) {} return out; }
+  (async function pull() { var db = await dbOf(); if (!db || !db.collection) return; try { db.collection("live").onSnapshot(function (s) { (s.docs || []).forEach(function (d) { var x = d.data(); if (x && x.date && x.notes) { var k = "horn-live-" + x.date, cur = null; try { cur = JSON.parse(localStorage.getItem(k) || "null"); } catch (e) {} if (!cur || (cur.notes || []).length < x.notes.length) try { localStorage.setItem(k, JSON.stringify(x)); } catch (e) {} } }); }, function () {}); } catch (e) {} })();
+  window.__live = { start: start, stop: stop, on: function () { return S.on; }, days: days, _yin: yin, _S: S };
 })();
 
 </script>
@@ -19294,12 +19573,33 @@ nav.tabs{grid-template-columns:repeat(4,1fr)!important}
 (function () {
   var lock = null;
   async function want(on) { try { if (on && !lock && navigator.wakeLock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", function () { lock = null; }); } else if (!on && lock) { await lock.release(); lock = null; } } catch (e) {} }
-  function check() { want(document.body.classList.contains("practice") && document.visibilityState === "visible"); }
+  function check() { want((document.body.classList.contains("practice") || document.body.classList.contains("live-on")) && document.visibilityState === "visible"); }
   new MutationObserver(check).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   document.addEventListener("visibilitychange", check);
   /* 인터넷 없이도 열리게(레드팀): https 주소에서만 등록 */
   try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
 })();
 </script>
+<style id="live-css">
+/* 실시간 듣기 막대: 흰 바탕, 검은 잉크, 가는 선 */
+#liveBar{position:fixed;left:0;right:0;top:0;z-index:60;display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;background:var(--bg);border-bottom:1px solid var(--text);font-family:"Helvetica Neue",Helvetica,"InterFB",Arial,sans-serif;font-variant-numeric:tabular-nums}
+#liveBar[hidden]{display:none}
+#liveBar .lv-note{font-family:"MusicSym","Imbue",serif;font-weight:500;font-size:34px;line-height:1;min-width:72px}
+#liveBar .lv-scale{position:relative;height:28px;border-left:1px solid var(--text);border-right:1px solid var(--text)}
+#liveBar .lv-mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--text)}
+#liveBar .lv-zone{position:absolute;left:42%;width:16%;top:9px;bottom:9px;background:repeating-linear-gradient(135deg,transparent 0 3px,rgba(128,128,128,.35) 3px 4px)}
+#liveBar .lv-pin{position:absolute;left:50%;top:2px;bottom:2px;width:4px;margin-left:-2px;background:var(--text);transition:left 70ms linear}
+#liveBar.lv-good .lv-pin{width:8px;margin-left:-4px}
+#liveBar .lv-c{min-width:44px;text-align:right;font-size:17px}
+#liveBar .lv-log,#liveBar .lv-stop{min-height:40px;min-width:44px;padding:0 12px;border:1px solid var(--text);border-radius:0;background:var(--bg);color:var(--text);font:inherit}
+#liveBar .lv-stop{background:var(--text);color:var(--bg)}
+#liveBar .lv-list{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:14px;color:#6B6B6B;padding-top:4px}
+#liveBar .lv-list[hidden]{display:none}
+#liveBar .lv-list .ok{color:var(--text);font-weight:600}
+body.live-on .wrap{padding-top:var(--lvh,72px)}
+.wrap header{position:relative}
+.live-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);min-height:40px;padding:0 14px!important;border:1px solid var(--text)!important;border-radius:0!important;background:var(--bg)!important;color:var(--text)!important}
+.live-btn[aria-pressed="true"]{background:var(--text)!important;color:var(--bg)!important}
+</style>
 </body>
 </html>
