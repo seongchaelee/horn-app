@@ -9831,6 +9831,7 @@ window.ROUTINE_DATA = {
         var helpTxt = []; if (stx.extra) helpTxt.push(stx.extra.charAt(0).toUpperCase() + stx.extra.slice(1)); if (ex.note && String(ex.note).split("\n").length < 2) helpTxt.push(String(ex.note));
         var helpLg = (card.__lg || []).slice(); if (helpTxt.length || helpLg.length) { var hb = el("button", "ex-help", "?"); hb.type = "button"; hb.setAttribute("aria-label", __L("도움말: ","Help: ") + (exT || bk.name)); hb.addEventListener("click", function (ev) { ev.stopPropagation(); openExHelp(exT || bk.name, helpTxt, helpLg); }); t.appendChild(hb); }
         wrap.appendChild(t);
+        if (ex.own && ex.own.marks) wrap.appendChild(el("p", "meta own-marks", String(ex.own.marks)));  
         if (ex.note) {
           var nl = String(ex.note).split("\n");
           if (nl.length > 1 && /^1\. /.test(nl[0])) { 
@@ -9925,6 +9926,7 @@ window.ROUTINE_DATA = {
     if (ps.length > 1) {  
       var nm = ps[0], rest = ps.slice(1), k1 = /^([A-G][♭♯]?(?: (?:major|minor))?)(?: (.+))?$/.exec(rest[0]);
       if (k1) { nm += ", " + k1[1]; rest = (k1[2] ? [k1[2]] : []).concat(rest.slice(1)); }
+      while (rest.length && /^bars?\b/i.test(rest[0])) { nm += ", " + rest[0]; rest = rest.slice(1); }  
       if (rest.length) return { name: nm, extra: rest.join(", ") };
     }
     return { name: t, extra: "" };
@@ -13203,20 +13205,24 @@ window.ROUTINE_DATA = {
     var cnt = {}, scnt = {};
     all.forEach(function (t) { var c = C.of(t); cnt[c.main] = (cnt[c.main] || 0) + 1; var k = c.main + "|" + (c.sub || "-"); scnt[k] = (scnt[k] || 0) + 1; });
     var row = $("#takeCat"); row.innerHTML = "";
-    row.appendChild(chip(__L("All","All"), all.length, T.cat === "all", function () { setCat("all"); }));
-    
-    C.MAIN.forEach(function (x) { if (!cnt[x[0]] && T.cat !== x[0]) return; var b = chip(x[1], cnt[x[0]] || 0, T.cat === x[0], function () { setCat(x[0]); }); b.setAttribute("data-cat", x[0]); row.appendChild(b); });
-    row.classList.add("scroll");
+    var cs = document.createElement("select"); cs.className = "tk-catsel"; cs.setAttribute("aria-label", __L("Category","Category")); cs.style.cssText = "min-height:44px;max-width:100%;flex:1 1 auto;padding:0 12px;border:1.5px solid currentColor;border-radius:0;background:transparent;color:inherit;font:inherit";
+    var addO = function (v, txt, n) { var o = document.createElement("option"); o.value = v; o.textContent = txt + " " + n; if ((T.cat || "all") === v) o.selected = true; cs.appendChild(o); };
+    addO("all", __L("All","All"), all.length);
+    C.MAIN.forEach(function (x) { if (!cnt[x[0]] && T.cat !== x[0]) return; addO(x[0], x[1], cnt[x[0]] || 0); });
+    if (nTodo) addO("todo", __L("To check","To check"), nTodo);
+    cs.addEventListener("change", function () { setCat(cs.value); }); row.appendChild(cs);
+    row.classList.remove("scroll"); row.style.cssText = "display:flex;gap:8px;align-items:center;flex-wrap:nowrap;overflow:visible";
     
     var tn = document.getElementById("tkTodo"); if (!tn) { tn = document.createElement("div"); tn.id = "tkTodo"; tn.className = "tk-note tk-todo"; var lst = $("#takeList"); lst.parentNode.insertBefore(tn, lst); }
-    tn.innerHTML = ""; tn.classList.toggle("hide", !nTodo);
-    if (nTodo) { var tsp = document.createElement("span"); tsp.textContent = T.cat === "todo" ? __L("Showing only the ","Showing only the ") + nTodo + __L(" auto-sorted"," auto-sorted") : __L("Auto-sorted by sound: ","Auto-sorted by sound: ") + nTodo + __L("",""); tn.appendChild(tsp);
-      var tb = document.createElement("button"); tb.type = "button"; tb.className = "btn small"; tb.textContent = T.cat === "todo" ? __L("Show all","Show all") : __L("Check","Check"); tb.setAttribute("data-cat", "todo"); tb.addEventListener("click", function () { setCat(T.cat === "todo" ? "all" : "todo"); }); tn.appendChild(tb); }
+    tn.innerHTML = ""; tn.classList.add("hide");
     var sr = $("#takeSub"), subs = C.SUB[T.cat]; sr.innerHTML = ""; sr.classList.toggle("hide", !subs);
     if (subs) {
-      sr.appendChild(chip(__L("All","All"), cnt[T.cat] || 0, !T.sub, function () { setSub(""); }));
-      subs.forEach(function (sb) { var b = chip(sb, scnt[T.cat + "|" + sb] || 0, T.sub === sb, function () { setSub(sb); }); b.setAttribute("data-sub", sb); sr.appendChild(b); });
-      var none = scnt[T.cat + "|-"] || 0; if (none) sr.appendChild(chip(__L("No detail","No detail"), none, T.sub === "-", function () { setSub("-"); }));
+      var ss = document.createElement("select"); ss.className = "tk-catsel"; ss.setAttribute("aria-label", __L("Subcategory","Subcategory")); ss.style.cssText = cs.style.cssText;
+      var addS = function (v, txt, n) { var o = document.createElement("option"); o.value = v; o.textContent = txt + " " + n; if ((T.sub || "") === v) o.selected = true; ss.appendChild(o); };
+      addS("", __L("All","All"), cnt[T.cat] || 0);
+      subs.forEach(function (sb) { addS(sb, sb, scnt[T.cat + "|" + sb] || 0); });
+      var none = scnt[T.cat + "|-"] || 0; if (none) addS("-", __L("No detail","No detail"), none);
+      ss.addEventListener("change", function () { setSub(ss.value); }); sr.appendChild(ss);
     }
     $("#benchBox").classList.toggle("hide", T.cat !== "참고");
     $("#sessBox").classList.toggle("hide", T.cat !== "루틴"); if (T.sessMsg) { $("#sessMsg").textContent = T.sessMsg; }
@@ -13247,7 +13253,7 @@ window.ROUTINE_DATA = {
   }
    
   function selBtn() {
-    var info = document.querySelector(".tk-info"); if (!info) return; var b = document.getElementById("takeSelBtn");
+    var info = document.getElementById("takeCat") || document.querySelector(".tk-info"); if (!info) return; var b = document.getElementById("takeSelBtn");
     if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "takeSelBtn"; b.className = "btn small"; info.appendChild(b); b.addEventListener("click", function () { T.sel = T.sel ? null : {}; render(); }); }
     b.textContent = T.sel ? __L("Done selecting","Done selecting") : __L("Edit several","Edit several"); b.classList.toggle("hide", !T.ready || !T.db);
   }
@@ -20221,7 +20227,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
         var ul = el("ul", "rc-blocks");
         VB.forEach(function (b) {
           var li = el("li"); li.dataset.k = b.kind; li.dataset.sec = String(b.sec); var bnh = el("span", "rc-bn", b.label); bnh.setAttribute("role", "heading"); bnh.setAttribute("aria-level", "3"); li.appendChild(bnh); var bm = el("span", "rc-bm", b.minutes ? String(b.minutes) : "<1"); bm.appendChild(el("small", "", " min")); li.appendChild(bm);
-          var w = Z ? WHY[b.kind] : b.why; if (w) li.appendChild(el("span", "rc-bw", w));
+           
           var ps = PAS[b.kind]; if (ps && ps.length) { var pl = el("ul", "rc-pas"); ps.forEach(function (p) { var pi = el("li", "rc-pa"); pi.appendChild(el("b", "", p.title)); pi.appendChild(el("span", "", "At " + p.tempoPct + "% tempo. " + (p.mode === "repeat alone first" ? "Repeat it alone first." : "Alternate with the others."))); pl.appendChild(pi); }); li.appendChild(pl); }
           ul.appendChild(li);
         }); c.appendChild(ul);
