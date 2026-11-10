@@ -11011,7 +11011,12 @@ window.ROUTINE_DATA = {
       var pss = $("#pbSess"); if (pss) pss.addEventListener("click", function () { sessionSheet(); });
       var sbs = $("#sessStart"); if (sbs) sbs.addEventListener("click", startSession);
       var sbx = $("#sessHide"); if (sbx) sbx.addEventListener("click", function () { try { localStorage.setItem("horn-sess-hide-" + today(), "1"); } catch (e) {} syncBar(); });
-      $("#pbNext").addEventListener("click", function () { next(); });
+      $("#pbNext").addEventListener("click", function () {
+         
+        var L = exList(), i = P.cur ? L.indexOf(P.cur) : -1;
+        if (L.length > 1 && i >= 0 && i < L.length - 1 && !busyRec()) { var t = L[i + 1]; P.pin = t; try { t.wrap.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" }); } catch (e) { t.wrap.scrollIntoView(); } stopAllSound(); return; }
+        next();
+      });
       $("#ptMid").addEventListener("click", openList);
       $("#ptMore").addEventListener("click", openMore);
       $("#dNext").addEventListener("click", function () { next(true); }); 
@@ -14431,9 +14436,14 @@ window.ROUTINE_DATA = {
   var ATT = [{ k: "first", name: __L("첫 음 박 어긋남","First note off the beat"), good: TH.onsetMs }, { k: "jitter", name: __L("박 들쭉날쭉","Uneven beat"), good: 40 }];
   var ATT2 = [{ k: "abs", name: __L("음정 흔들림","Unsteady pitch"), good: 10 }, { k: "settle", name: __L("음 안정 느림","Slow note settling"), good: 120 }, { k: "acc", name: __L("틀린 음","Wrong notes"), good: 0.9, up: true }];
   
-  function nameOf(c) {
+  function nameOf(c) {  
+    var r = nameOf0(c); if (typeof r !== "string") return r;
+    r = r.replace(/^(overall|전체)[\s,]*/i, "").replace(/^[\s,]+/, ""); return r.charAt(0).toUpperCase() + r.slice(1);
+  }
+  function nameOf0(c) {
     if (c.kind === "att") return c.dm.name;
     if (c.kind === "regn") return c.reg + " " + (c.metric === "settle" ? __L("음 안정 느림","slow note settling") : Math.abs(c.v) >= 5 ? __L("음정 ","pitch ") + (c.v < 0 ? __L("낮음","flat") : __L("높음","sharp")) : __L("음정 흔들림","unsteady pitch"));
+    if (c.kind !== "lvl" && !subj(c, true)) c = Object.assign({}, c, { kind: "lvl" });  
     var m = c.m, v = c.s.v, where = c.kind === "lvl" ? __L("전체","overall") : subj(c, true);
     switch (m.k) {
       case "brk": return where + (c.kind === "lvl" ? __L(" ",", ") : __L("에서 ",", ")) + __L("소리 끊김","broken sound");
@@ -20227,12 +20237,13 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     function renderCard(host, rec, selected) {
       var Z = ensureReal(rec), VB = Z ? Z.view : !modern() && rec.nat ? rec.nat.view : null, WHY = {}, PAS = {}; rec.blocks.forEach(function (b) { WHY[b.kind] = [b.why, b.tip].filter(Boolean).join(" "); if (b.passages) PAS[b.kind] = b.passages; });
       var c = el("section", "rc-card" + (selected ? "" : " unsel")); c.setAttribute("aria-label", "Today's routine");
-      var tg = el("div", "rc-tag", rec.over ? "Suggested for today, from your goal and time" : "Suggested for today"); tg.setAttribute("role", "heading"); tg.setAttribute("aria-level", "2"); c.appendChild(tg);  
+      var tg = el("div", "rc-tag", "Suggested for today"); tg.setAttribute("role", "heading"); tg.setAttribute("aria-level", "2"); c.appendChild(tg);  
       var big = el("div", "rc-big"); big.appendChild(el("b", "", String(rec.minutes))); big.appendChild(el("i", "", "min")); big.appendChild(el("span", "rc-pur", PEN[rec.purpose])); c.appendChild(big);
       var one = rec.oneLine || ""; if (VB && VB.some(function (b) { return b.label === OWN_NAME; })) one = one.replace("so excerpts get", "so your concert pieces get"); 
       var oneMore = [];  
       try { var ss = one.split(/(?<=[.!?])\s+/); if (ss.length > 1) { var kp = [ss[0]]; ss.slice(1).forEach(function (q) { (/stop if|pain|numb|doctor|hurt|rest\b|capped|at most|limit/i.test(q) ? kp : oneMore).push(q); }); one = kp.join(" "); } } catch (e) { oneMore = []; }
-      c.appendChild(el("p", "rc-one", one));
+       
+      if (rec.cap && rec.cap.hard || rec.flags && rec.flags.lip === "red") c.appendChild(el("p", "rc-one", one)); else if (one) oneMore.unshift(one);
       capCtl(c, rec, "rcCapOK", "rcCapOff");
       if (VB) {
         var st = el("div", "rc-staff"); st.setAttribute("role", "img"); st.setAttribute("aria-label", "Blocks as measures, width is minutes");
@@ -23159,7 +23170,7 @@ window.__PROBANDS={"note":"Aggregated bands from professional recordings measure
       rules = sticky(rules);
       var top = rules[0], X = RX[top.id], d = el("div", "pt-ly");
       c.appendChild(el("p", "pt-sec", __L("지금 시험할 것","Try this now")));
-      d.appendChild(el("b", "", X.t)); d.appendChild(el("p", "pt-t", __L("비교: ","Compare: ") + X.test));
+      d.appendChild(el("b", "", X.t));  
       var ol = el("ol"); X.rx.forEach(function (s) { ol.appendChild(el("li", "", s)); }); d.appendChild(ol);
       var Mn = G.__hrmManual, m = X.man && Mn && Mn.get(X.man); if (m) { var b = el("button", "btn small", m.t + " ›"); b.type = "button"; b.addEventListener("click", function () { Mn.open(X.man); }); d.appendChild(b); }
       c.appendChild(d);
@@ -25530,6 +25541,7 @@ function __eng110Factory(G) {
   function hhmm(iso) { var d = iso ? new Date(iso) : null; if (!d || isNaN(d)) return ""; var z = function (k) { return (k < 10 ? "0" : "") + k; }; return z(d.getHours()) + ":" + z(d.getMinutes()); }
   function todayAttempts() { var G = window.__prog, day = today(); if (!G) return []; return G.attempts(function (a) { return a.date && String(a.date).slice(0, 10) === day && a.notes && a.notes.length; }).sort(function (x, y) { var p = aWhen(x), q = aWhen(y); return p < q ? 1 : p > q ? -1 : 0; }); }
   function todayCard() { 
+    return null;  
     if (R.days !== 1 || !window.__noteGrid || !window.__noteGrid.takeCounts) return null;
     var L = todayAttempts(); if (!L.length) return null;
     var tot = [0, 0, 0], n = 0, nr = 0, rep = 0, rows = "";
@@ -25541,7 +25553,7 @@ function __eng110Factory(G) {
     var pc = function (v) { return n ? Math.round(v / n * 100) + "%" : "0%"; };
     var sum = n ? '<p class="rt-sum" data-n="' + n + '" data-z="' + tot.join(",") + '" data-recs="' + nr + '"><b>' + window.__stat.pl(nr, "recording", "recordings") + ", " + window.__stat.pl(n, "note", "notes") + '</b><span>In tune ' + pc(tot[0]) + "</span><span>A bit off " + pc(tot[1]) + "</span><span>Needs work " + pc(tot[2]) + "</span></p>" : '<p class="meta">Repeat tries only so far.</p>';
     var el2 = document.createElement("div"); el2.className = "card rv rv-today"; el2.id = "rvToday";
-    el2.innerHTML = "<h3>Today</h3>" + sum + '<ul class="rt-l">' + rows + "</ul>" + (L.length > 6 ? '<p class="meta">' + (L.length - 6) + " earlier today</p>" : "") + (rep && n ? '<p class="meta">Repeat tries are listed, not counted.</p>' : "");
+    el2.innerHTML = "<h3>Today</h3>" + sum;  
     return el2;
   }
   function todayCss() {
@@ -28324,9 +28336,9 @@ html:not([data-x]) body h1,html:not([data-x]) body #title{border-bottom:3px doub
 .rc-big i{font:italic 400 1.5rem var(--f-it)}
 .rc-pur{margin-left:auto;align-self:center;border:1px solid var(--rule);padding:3px 10px;font:600 0.8125rem var(--f-ui)}
 .rc-one{font:italic 400 1.1875rem/1.25 var(--f-it);margin:6px 0 14px;color:var(--text)}
-.rc-staff{display:flex;height:46px;border-left:2px solid var(--rule);border-right:3px double var(--rule);background:repeating-linear-gradient(to bottom,transparent 0 8px,var(--rule) 8px 9px);background-size:100% 36px;background-repeat:no-repeat;background-position:0 5px}
+.rc-staff{display:flex;height:46px;border-left:2px solid var(--rule);border-right:3px double var(--rule);background:repeating-linear-gradient(to bottom,var(--rule) 0 1px,transparent 1px 9px);background-size:100% 37px;background-repeat:no-repeat;background-position:0 4px}
 .rc-staff i{display:block;border-right:1px solid var(--rule);min-width:0;position:relative}.rc-staff i:last-child{border-right:0}
-.rc-staff span{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:600 0.75rem var(--f-ui);background:var(--bg);margin:0 auto;width:fit-content;padding:0 3px}
+.rc-staff span{z-index:1;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:600 0.75rem var(--f-ui);background:var(--bg);margin:0 auto;width:fit-content;padding:0 3px}
 .rc-blocks{list-style:none;margin:14px 0 0;padding:0}
 .rc-blocks>li{display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:9px 0;border-top:1px solid var(--line)}
 .rc-bn{font-weight:600}.rc-bm{font:600 1.0625rem var(--f-disp);text-align:right}.rc-bm small{font:400 0.75rem var(--f-ui);color:var(--text2)}
@@ -28655,7 +28667,6 @@ button.ex-help.ex-help::before{content:"";position:absolute;inset:8px;border:1px
 .pc-credit a{display:inline-block;padding:12px 2px;margin:-12px 0}
 select.pc-ref{min-height:40px}.pc-ov .btn.small{min-width:40px;min-height:40px}
 .set-qn{display:flex;flex-direction:column;align-items:flex-start;margin:0 0 6px}.set-qn .dv-help{align-self:stretch}
-.rc-staff span{display:none}
 .ex-dots .ex-dot{padding:15px 0!important;margin:-11px 0!important}
 .pbar-ex{font-size:0.875rem}
 .take-head b small.meta{margin-top:2px}
