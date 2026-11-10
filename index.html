@@ -365,14 +365,16 @@
     function paint() { t.textContent = ago(lastSync()) + "."; }
     function mk(label, fn) { var b = document.createElement("button"); b.type = "button"; b.className = "btn small"; b.textContent = label; b.addEventListener("click", fn); bar.appendChild(b); return b; }
     var msg = document.createElement("span");
-    mk(__L("iCloud로 보내기","Send to iCloud"), async function () {
+    async function doSend() {
       await ready; var blob = window.__standalone.exportDocs(), f = null;
       try { f = new File([blob], __L("★ 호른_동기화.json","★ horn_sync.json"), { type: "application/json" }); } catch (e) {}
       try {
-        if (f && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); setSync(); paint(); msg.textContent = __L("보냈어요. 파일 앱에서 iCloud Drive의 같은 폴더에 덮어쓰세요","Sent. In the Files app, overwrite the file in the same iCloud Drive folder."); return; }
-      } catch (e) { if (e && e.name === "AbortError") return; }
-      await downloads.save({ filename: __L("★ 호른_동기화.json","★ horn_sync.json"), data: blob }); setSync(); paint(); msg.textContent = __L("파일로 저장했어요. iCloud Drive의 같은 폴더로 옮기세요","Saved as a file. Move it into the same iCloud Drive folder.");
-    });
+        if (f && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); setSync(); paint(); msg.textContent = __L("보냈어요. 파일 앱에서 iCloud Drive의 같은 폴더에 덮어쓰세요","Sent. In the Files app, overwrite the file in the same iCloud Drive folder."); return true; }
+      } catch (e) { if (e && e.name === "AbortError") return false; }
+      await downloads.save({ filename: __L("★ 호른_동기화.json","★ horn_sync.json"), data: blob }); setSync(); paint(); msg.textContent = __L("파일로 저장했어요. iCloud Drive의 같은 폴더로 옮기세요","Saved as a file. Move it into the same iCloud Drive folder."); return true;
+    }
+    mk(__L("iCloud로 보내기","Send to iCloud"), function () { doSend(); });
+    window.__saSend = doSend; 
     
     var hl = document.createElement("label"); hl.style.cssText = "flex-basis:100%;display:flex;gap:8px;align-items:flex-start;margin-top:4px";
     var hc = document.createElement("input"); hc.type = "checkbox"; hc.id = "sa-health"; hc.checked = healthConsent(); hc.style.cssText = "margin-top:3px;flex:none";
@@ -407,15 +409,15 @@
     });
     bar.appendChild(inp); mk(__L("iCloud에서 불러오기","Load from iCloud"), function () { inp.click(); }); bar.appendChild(hl); bar.appendChild(hn);
     var ub = mk(__L("방금 가져온 것 되돌리기","Undo last import"), function () { var n = window.__standalone.undoImport(); msg.textContent = n ? n + __L("개를 되돌렸어요"," records undone.") : __L("되돌릴 게 없어요","Nothing to undo."); ub.style.display = "none"; }); ub.style.display = "none"; bar.appendChild(msg);
-    paint(); document.body.appendChild(bar);
+    paint(); bar.style.display = "none"; document.body.appendChild(bar); 
     ready.then(function () { if (idb) return; var wb = document.createElement("div"); wb.setAttribute("role", "alert"); wb.id = "sa-warn";
       wb.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:60;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;background:#7A1F1F;color:#fff;font:0.875rem var(--f-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif);text-align:center";
-      wb.textContent = __L("이 브라우저가 저장을 막고 있어 기록이 이 화면에만 남아요. 닫으면 사라지니 맨 아래로 내려가 동기화 파일로 먼저 내보내세요. 사생활 보호 창이면 일반 창에서 여세요.","This browser is blocking storage, so your records only live on this screen. They disappear when you close it, so scroll to the very bottom of any tab and tap Send to iCloud first. If this is a private window, open the app in a normal window."); var wt = document.createElement("span"); wt.textContent = wb.textContent; wb.textContent = ""; wb.appendChild(wt); var wx = document.createElement("button"); wx.type = "button"; wx.textContent = __L("숨기기","Hide"); wx.setAttribute("aria-label", __L("저장 경고 숨기기","Hide storage warning")); wx.addEventListener("click", function () { wb.remove(); }); wb.appendChild(wx); document.body.insertBefore(wb, document.body.firstChild); });
+      wb.textContent = __L("이 브라우저가 저장을 막고 있어 기록이 이 화면에만 남아요. 닫으면 사라지니 설정의 동기화에서 파일로 먼저 내보내세요. 사생활 보호 창이면 일반 창에서 여세요.","This browser is blocking storage, so your records only live on this screen. They disappear when you close it, so open Settings and use Sync to send them to iCloud first. If this is a private window, open the app in a normal window."); var wt = document.createElement("span"); wt.textContent = wb.textContent; wb.textContent = ""; wb.appendChild(wt); var wx = document.createElement("button"); wx.type = "button"; wx.textContent = __L("숨기기","Hide"); wx.setAttribute("aria-label", __L("저장 경고 숨기기","Hide storage warning")); wx.addEventListener("click", function () { wb.remove(); }); wb.appendChild(wx); document.body.insertBefore(wb, document.body.firstChild); });
     
     if (Date.now() - lastSync() > 864e5) {
       var nb = document.createElement("div"); nb.setAttribute("role", "status"); nb.id = "sa-nudge";
       nb.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:50;display:flex;gap:8px;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;background:var(--fill,#EEEEEA);color:var(--text,#17181A);font:0.875rem var(--f-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif)";
-      var tx = document.createElement("span"); tx.textContent = lastSync() ? ago(lastSync()) + __L(". 화면 맨 아래로 내려가 동기화",". Scroll to the very bottom of any tab to sync.") : __L(ago(0) + ". 화면 맨 아래로 내려가 동기화", "Saved on this device only. To back it up, scroll to the very bottom of any tab to sync."); nb.appendChild(tx); 
+      var tx = document.createElement("span"); tx.textContent = lastSync() ? ago(lastSync()) + __L(". 설정의 동기화에서 보내세요",". Open Settings and use Sync.") : __L(ago(0) + ". 설정의 동기화에서 보내세요", "Saved on this device only. To back it up, open Settings and use Sync."); nb.appendChild(tx); 
       var x = document.createElement("button"); x.type = "button"; x.textContent = __L("숨기기","Hide"); x.setAttribute("aria-label", __L("동기화 알림 숨기기","Hide sync reminder")); x.className = "btn small"; x.addEventListener("click", function () { dropNudge(); }); nb.appendChild(x);
       document.body.insertBefore(nb, document.body.firstChild);
     }
@@ -10893,6 +10895,16 @@ window.ROUTINE_DATA = {
       }); });
       return best;
     }
+    function syncAsk() {
+      if (!window.__standalone || typeof window.__saSend !== "function" || !document.getElementById("sa-bak")) return null;
+      var day = today(), k1 = "horn-sync-ask-no-" + day, k2 = "horn-sync-ask-" + day + "-" + P.sig;
+      try { if (localStorage.getItem(k1) || localStorage.getItem(k2)) return null; localStorage.setItem(k2, "1"); } catch (e) { return null; }
+      var c = el("div", "card fin-sync"); c.id = "finSync"; c.appendChild(el("p", "fin-qt", __L("Send today's practice to iCloud?","Send today's practice to iCloud?")));
+      var r = el("div", "fin-qs"), s = el("button", "btn small", "Send"), n = el("button", "btn small", "Not now"); s.type = "button"; n.type = "button"; s.style.whiteSpace = n.style.whiteSpace = "nowrap";
+      s.addEventListener("click", function () { s.disabled = true; Promise.resolve(window.__saSend()).then(function (ok) { if (ok) { c.innerHTML = ""; c.appendChild(el("p", "meta", "Sent.")); } else s.disabled = false; }, function () { s.disabled = false; }); });
+      n.addEventListener("click", function () { try { localStorage.setItem(k1, "1"); } catch (e) {} c.remove(); });
+      r.appendChild(s); r.appendChild(n); c.appendChild(r); return c;
+    }
     function finish() {
       if (!P.R) return;
       if (P.finSheet && Date.now() - P.finSheet < 2000) return; P.finSheet = Date.now();
@@ -10926,7 +10938,8 @@ window.ROUTINE_DATA = {
       if (window.__ev && !again) window.__ev("session_end", { min: min, tries: nTry, blocks: P.R.blocks.length, gain: g ? g.t : "" });
       var toSetup = function () { var b = $("#setupBtn"); if (b && !$("#runView").classList.contains("hide")) b.click(); };
       try { if (window.HornHRM && window.HornHRM.finishUI) { var hf = window.HornHRM.finishUI(P.R); if (hf) body.push(hf); } } catch (e) {} 
-      sheetOpen({ title: __L("연습 종료","Practice finished"), body: body, actions: [{ label: __L("리뷰에서 보기","See in Review"), onClick: function () { toSetup(); go("review"); } }, { label: __L("루틴으로","To routine"), cls: "text", onClick: toSetup }] });
+      try { var sq = syncAsk(); if (sq) body.splice(1, 0, sq); } catch (e) {}  
+      sheetOpen({ title: __L("연습 종료","Practice finished"), body: body, actions: [{ label: __L("리뷰에서 보기","See in Review"), onClick: function () { toSetup(); window.__reviewToday = true; go("review"); } }, { label: __L("루틴으로","To routine"), cls: "text", onClick: toSetup }] });
     }
      
     function resume() {
@@ -10991,7 +11004,7 @@ window.ROUTINE_DATA = {
           if (seenTip) d.pickFile(); else fileTip(d);
           return;
         }
-        if (!st.busy) { var top = (x.sc || x.wrap).getBoundingClientRect().top + window.scrollY - 8; window.scrollTo({ top: Math.max(0, top), behavior: "auto" }); P.pin = x; }
+        if (!st.busy) { try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { window.scrollTo(0, 0); } P.pin = x; }  
         d.start();
       });
       $("#pbTime").addEventListener("click", function () { if (P.rec) { toast(__L("녹음 중에는 멈출 수 없어요. 녹음 단추를 눌러 먼저 녹음을 끝내세요","Pause is off while recording. Tap the record button to stop the take first")); return; } setPaused(!P.paused); });
@@ -21854,7 +21867,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   }
    
   function renderSettings() {
-    var v = document.getElementById("setBody"); if (!v) return; var bk0 = document.getElementById("sa-bak"); if (bk0 && v.contains(bk0)) document.body.appendChild(bk0); v.innerHTML = "";
+    var v = document.getElementById("setBody"); if (!v) return; var bk0 = document.getElementById("sa-bak"); if (bk0 && v.contains(bk0)) { bk0.style.display = "none"; document.body.appendChild(bk0); } v.innerHTML = "";
     var pf = profileGet() || {};
     function sec(t) { v.appendChild(el("h2", "set-h", t)); }
     function row(label, val, fn) { var r = el("button", "card lrow two set-row"); r.type = "button"; var t = el("span"); t.appendChild(el("b", "", label)); t.appendChild(el("small", "", val || __L("정하지 않음","Not set"))); r.appendChild(t); r.appendChild(el("span", "chev", "›")); r.addEventListener("click", fn); v.appendChild(r); return r; }
@@ -21960,12 +21973,13 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     var cw = el("div", "chips set-theme"); [["", __L("기기 따라","System")], ["light", __L("밝게","Light")], ["dark", __L("어둡게","Dark")]].forEach(function (q) {
       cw.appendChild(btn(q[1], "chip", function () { try { if (q[0]) localStorage.setItem("horn-proto-theme", q[0]); else localStorage.removeItem("horn-proto-theme"); } catch (e) {} if (q[0]) document.documentElement.setAttribute("data-theme", q[0]); else document.documentElement.removeAttribute("data-theme"); renderSettings(); }, th === q[0]));
     }); v.appendChild(cw);
-    sec(__L("기록 파일","Data"));
+    sec(__L("동기화","Sync"));
     
     v.appendChild(el("p", "meta set-note set-disc", window.__standalone ? "This copy keeps your data on this device only." : "Anyone with the app link can see your saved data, so do not share the link.")); if (!window.__standalone) qNote(__L("저장 위치","What is saved where"), "Saved to this app's store: recordings, results, logged notes, lip and pain answers, and settings. Excerpt lists and waiting submissions stay on this device. Score drawing loads its viewer from the internet.", "set-note");
-    var bak = document.getElementById("sa-bak"); if (bak) { bak.style.margin = "0"; bak.style.padding = "0"; v.appendChild(bak); }
+    var bak = document.getElementById("sa-bak"); if (bak) { bak.style.margin = "0"; bak.style.padding = "0"; bak.style.display = "flex"; v.appendChild(bak); }
     else v.appendChild(el("small", "set-note", __L("이 판에서는 기록 파일 저장이 없습니다","No backup file in this build")));
     
+    histLink(v);
     sec("About");
     var lic = el("details", "set-lic"); lic.id = "setLic"; lic.appendChild(el("summary", "", "Open source licences"));
     lic.appendChild(el("p", "meta set-note", "abcjs 6.5.2, MIT licence. Copyright 2009-2024 Paul Rosen and Gregory Dyke. Permission is granted, free of charge, to use, copy, modify, merge, publish, distribute, sublicense and sell copies of the software, provided this notice is kept. The software is provided as is, without warranty of any kind."));
@@ -21978,7 +21992,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
   window.__settingsShow = renderSettings;
   function renderSetup() {
     renderOnboard();
-    renderPurpose(); renderWeek(); renderBody(); histLink(); renderSuggest(); renderLanding();
+    renderPurpose(); renderWeek(); renderBody(); renderSuggest(); renderLanding();
     ["#weakCard", "#vsCard", "#goalCard", "#histCard"].forEach(function (q) { var c = $(q); if (c) { c.classList.remove("prog"); c.classList.add("stat-card"); } }); 
     var G = window.__prog; if (!G) return;
     function goRec() { return btn(__L("녹음하러 가기","Go record"), "btn small", function () { setMode("run"); }); }
@@ -22008,8 +22022,8 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
     }
   }
   
-  function histLink() {
-    var sv = $("#setupView"); if (!sv || document.getElementById("histLink")) return;
+  function histLink(sv) { 
+    if (!sv) return; var old = document.getElementById("histLink"); if (old) old.remove();
     var r = el("button", "card lrow two hist-link"); r.type = "button"; r.id = "histLink";
     var t = el("span"); t.appendChild(el("b", "", __L("지난 기록","Past records"))); t.appendChild(el("small", "", __L("약점과 목표","Weak spots and goals"))); r.appendChild(t); r.appendChild(el("span", "chev", "›"));
     r.addEventListener("click", function () { var b = document.querySelector('nav.tabs button[data-v="review"]'); if (b) b.click(); });
@@ -22074,7 +22088,7 @@ window.__NATREP.ex=[{"w": "J. S. Bach, Brandenburg Concerto No. 1", "p": "Horn I
       function sec(t) { var w = el("div", "inst-row"); w.appendChild(el("p", "meta", t)); box2.appendChild(w); return w; }
       var hintP = el("p", "meta inst-hint"); hintP.setAttribute("role", "status");
       function chk() { var g = $("#instGo2"); if (g) g.disabled = !(bodyAsked() && rangeOk); hintP.textContent = !bodyAsked() ? __L("오늘 입술 상태를 먼저 고르세요","Answer the lips question above to start.") : (Q.range && !rangeOk) ? __L("음역을 확인하고 이 음역이 맞아요를 누르세요","Check the range, then tap This range is right to start.") : ""; }  
-      if (Q.empty && (Q.body || Q.range || Q.conc.length)) { var wE = sec(__L("다른 기기에서 쓰던 기록이 있으면","If you have records from another device")); wE.appendChild(el("p", "meta", __L("먼저 아무 탭이나 맨 아래로 내려가 \"iCloud에서 불러오기\"로 기록 파일을 넣고 오세요. 지금 시작해도 되지만, 기록이 없으면 약점과 목표가 비어 있어요","First, scroll to the very bottom of any tab and tap \"Load from iCloud\" to bring in your records file, then come back. You can start now, but without records, weak spots and goals will be empty"))); }
+      if (Q.empty && (Q.body || Q.range || Q.conc.length)) { var wE = sec(__L("다른 기기에서 쓰던 기록이 있으면","If you have records from another device")); wE.appendChild(el("p", "meta", __L("먼저 설정의 동기화에서 \"iCloud에서 불러오기\"로 기록 파일을 넣고 오세요. 지금 시작해도 되지만, 기록이 없으면 약점과 목표가 비어 있어요","First, open Settings, find Sync and tap \"Load from iCloud\" to bring in your records file, then come back. You can start now, but without records, weak spots and goals will be empty"))); }
       if (Q.body) { var wB = sec(__L("오늘 입술은 어때요 (필수)","How are your lips today? (required)")); wB.appendChild(bodyList(false, function () { Array.prototype.forEach.call(wB.querySelectorAll(".body-opt"), function (b2) { b2.setAttribute("aria-pressed", "false"); }); chk(); bodyRegen(); var nb = el("p", "meta", __L("정했어요: ","Set: ") + bodyLabel(bodyState())); var old = wB.querySelector(".inst-done"); if (old) old.remove(); nb.className += " inst-done"; wB.appendChild(nb); })); }
       if (Q.range) {
         var wR = sec(__L("편하게 나는 음역, 기보 (필수)","Comfortable range, written (required)")), lo = el("select", "sel"), hi = el("select", "sel");
@@ -23715,11 +23729,18 @@ function __eng110Factory(G) {
   }
    
   var CACHE = {}, LS = "horn-eng110", loaded = false;
-  function keyOf(t) { var r = t.notes || [], a = r[0], z = r[r.length - 1], st = function (x) { return x ? (Array.isArray(x) ? x[0] : x.start) : ""; }; return (t.id || t.fileName || "") + "|" + r.length + "|" + st(a) + "|" + st(z) + "|" + VER; }
-  function lsLoad() { if (loaded) return; loaded = true; try { var j = G.localStorage && JSON.parse(G.localStorage.getItem(LS) || "{}"); if (j && j.v === VER) CACHE = j.c || {}; } catch (e) {} }
-  function lsSave() { try { if (!G.localStorage) return; var ks = Object.keys(CACHE); if (ks.length > 400) ks.slice(0, ks.length - 400).forEach(function (k) { delete CACHE[k]; }); G.localStorage.setItem(LS, JSON.stringify({ v: VER, c: CACHE })); } catch (e) {} }
+  
+  var NS = { o: null, s: "0" };
+  function nsig() { var N = G.__FNORMS; if (!N) return "0"; if (N === NS.o) return NS.s; var a = N.norms || [], h = a.length >>> 0; for (var i = 0; i < a.length; i++) { var m = a[i] || {}, b = m.modern || {}, s2 = String(m.id || "") + "|" + (b.p50 == null ? "" : b.p50) + "|" + (b.p25 == null ? "" : b.p25) + "|" + (b.p75 == null ? "" : b.p75) + "|" + ((m.natural_period || {}).p50 == null ? "" : m.natural_period.p50) + "|" + (m.n_takes_modern || "") + "|" + ((m.modern_q || []).length) + "|" + ((m.modern_q || [])[19] == null ? "" : m.modern_q[19]); for (var k = 0; k < s2.length; k++) h = (Math.imul(h, 31) + s2.charCodeAt(k)) >>> 0; } NS.o = N; NS.s = h.toString(36); return NS.s; }
+  function keyOf(t) { var r = t.notes || [], a = r[0], z = r[r.length - 1], st = function (x) { return x ? (Array.isArray(x) ? x[0] : x.start) : ""; }; return (t.id || t.fileName || "") + "|" + r.length + "|" + st(a) + "|" + st(z) + "|" + VER + "|" + nsig(); }
+  var STAT = { computed: 0, hits: 0 };
+  function lsLoad() { if (loaded) return; loaded = true; try { var j = G.localStorage && JSON.parse(G.localStorage.getItem(LS) || "{}"); if (j && j.v === VER && j.n === nsig()) CACHE = j.c || {}; } catch (e) {} }
+  function lsSave() { try { if (!G.localStorage) return; var ks = Object.keys(CACHE); if (ks.length > 400) ks.slice(0, ks.length - 400).forEach(function (k) { delete CACHE[k]; }); G.localStorage.setItem(LS, JSON.stringify({ v: VER, n: nsig(), c: CACHE })); } catch (e) {} }
   function cached(t) { lsLoad(); return CACHE[keyOf(t)]; }
-  function valuesOf(t) { lsLoad(); var k = keyOf(t); if (!CACHE[k]) CACHE[k] = values(t.notes); return CACHE[k]; }
+  function valuesOf(t) { lsLoad(); var k = keyOf(t); if (!CACHE[k]) { STAT.computed++; CACHE[k] = values(t.notes); } else STAT.hits++; return CACHE[k]; }
+  
+  function one(t) { if (!t || !t.notes || t.notes.length < 30) return null; var had = !!cached(t), v = valuesOf(t); if (!had) lsSave(); return v; }
+  function newestFirst(a, b) { var da = takeDate(a), db = takeDate(b); if (da !== db) return da < db ? 1 : -1; var ta = String(a.recTime || a.createdAt || a.at || ""), tb = String(b.recTime || b.createdAt || b.at || ""); return ta < tb ? 1 : ta > tb ? -1 : 0; }
   function eligible(takes, g) { return (takes || []).filter(function (t) { return t && t.notes && t.notes.length >= 30 && groupOf(t) === g && !t.dupOf; }); }
   function analyze(takes, g, opts) { g = g || "modern"; var L = eligible(takes, g), T = []; var sg = sigOf(L, g, opts); if (RES[sg]) return RES[sg]; L.forEach(function (t) { var v = valuesOf(t); if (v && Object.keys(v).length) T.push({ date: takeDate(t), v: v, id: t.id }); }); var R = stats(T, g, opts); if (R) { R.eligible = L.length; RES[sg] = R; } return R; }
   var RES = {};
@@ -23746,8 +23767,9 @@ function __eng110Factory(G) {
   }
   function idle(fn) { if (G.requestIdleCallback) G.requestIdleCallback(fn, { timeout: 200 }); else setTimeout(fn, 0); }
   function ensure(takes, onProgress, opt) {
-    lsLoad(); opt = opt || {}; var todo = (takes || []).filter(function (t) { return t && t.notes && t.notes.length >= 30 && !CACHE[keyOf(t)]; }), total = todo.length, done = 0, NMS = (G.__FNORMS && G.__FNORMS.norms) || [];
+    lsLoad(); opt = opt || {}; var todo = (takes || []).filter(function (t) { return t && t.notes && t.notes.length >= 30 && !CACHE[keyOf(t)]; }).sort(newestFirst), total = todo.length, done = 0, NMS = (G.__FNORMS && G.__FNORMS.norms) || []; 
     if (!total) return Promise.resolve(0);
+    STAT.computed += total;
     return new Promise(function (res) {
       function finish() { lsSave(); res(total); }
       function chunks() { var i = 0; (function step() { var t0 = Date.now(); while (i < todo.length && Date.now() - t0 < 12) { var t = todo[i++]; CACHE[keyOf(t)] = values(t.notes, NMS); done++; } STEPMAX = Math.max(STEPMAX, Date.now() - t0); if (onProgress) onProgress(done, total); if (i < todo.length) idle(step); else finish(); })(); }
@@ -23767,7 +23789,7 @@ function __eng110Factory(G) {
   function takeVal(F, cell) { if (!F || !cell) return null; if (cell.type === "cell_stat") return cellStat(F, cell.filter, cell.value, cell.min_notes); if (cell.type === "contrast") { var a = cellStat(F, cell.A, cell.value, cell.min_notes_each), b = cellStat(F, cell.B, cell.value, cell.min_notes_each); return a == null || b == null ? null : a - b; } return null; }
   function computable(cell) { return !!cell; }
   function noteName(m) { return NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); }
-  return { VER: VER, clean: clean, features: features, values: values, valuesF: valuesF, cellStat: cellStat, custom: custom, stats: stats, analyze: analyze, analyzeAsync: analyzeAsync, analyzedFor: analyzedFor, ensure: ensure, cached: cached, valuesOf: valuesOf, keyOf: keyOf,
+  return { VER: VER, clean: clean, features: features, values: values, valuesF: valuesF, cellStat: cellStat, custom: custom, stats: stats, analyze: analyze, analyzeAsync: analyzeAsync, analyzedFor: analyzedFor, ensure: ensure, cached: cached, valuesOf: valuesOf, keyOf: keyOf, one: one, nsig: nsig, stat: function () { return { computed: STAT.computed, hits: STAT.hits }; },
     eligible: eligible, groupOf: groupOf, takeDate: takeDate, takeVal: takeVal, computable: computable, signP: signP, mwP: mwP, cdf: cdf, med: med, pct: pct, usedWorker: usedWorker, _stepMax: function () { return STEPMAX; }, noteName: noteName, MIN_TAKES: 6, MIN_DATES: 3,
     _cache: function () { return CACHE; }, _reset: function () { CACHE = {}; RES = {}; loaded = true; } };
 }
@@ -24115,7 +24137,7 @@ function __eng110Factory(G) {
     var S = null; try { S = fromTakes(L); } catch (e) { S = null; }
     fill(c, S); return c;
   }
-  function refresh() { var old = document.getElementById("standOut"); if (!old || !old.parentNode) return; var og = Array.prototype.map.call(old.querySelectorAll("details.dv-grp"), function (d) { return [d.getAttribute("data-grp") || d.className, d.open]; }), oq = Array.prototype.map.call(old.querySelectorAll('.so-row .dv-q[aria-expanded="true"]'), function (b) { return b.closest(".so-row").getAttribute("data-id"); }); var n = card(); old.parentNode.replaceChild(n, old); og.forEach(function (x) { Array.prototype.forEach.call(n.querySelectorAll("details.dv-grp"), function (d) { if ((d.getAttribute("data-grp") || d.className) === x[0]) d.open = x[1]; }); }); oq.forEach(function (id) { var b = id && n.querySelector('.so-row[data-id="' + id + '"] .dv-q'); if (b) b.click(); }); }
+  function refresh() { var old = document.getElementById("standOut"); if (!old || !old.parentNode) return; var og = Array.prototype.map.call(old.querySelectorAll("details.dv-grp"), function (d) { return [d.getAttribute("data-grp") || d.className, d.open]; }), oq = Array.prototype.map.call(old.querySelectorAll('.so-row .dv-q[aria-expanded="true"]'), function (b) { return b.closest(".so-row").getAttribute("data-id"); }); var n = card(); old.parentNode.replaceChild(n, old); og.forEach(function (x) { Array.prototype.forEach.call(n.querySelectorAll("details.dv-grp"), function (d) { if ((d.getAttribute("data-grp") || d.className) === x[0]) d.open = x[1]; }); }); oq.forEach(function (id) { var b = id && n.querySelector('.so-row[data-id="' + id + '"] .dv-q'); if (b) b.click(); }); try { if (G.__rvUpdating) G.__rvUpdating(); } catch (e) {}   }
   G.__standOut = { shortOf: shortOf, groupOf: groupOfRow, card: card, refresh: refresh, plain: plain, fromTakes: fromTakes, variations: variations, blockOf: blockOf, fmt: fmt, run: RUN };
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -25486,6 +25508,83 @@ function __eng110Factory(G) {
   }
   function jump(sel) { var el = $("#reviewBody " + sel); if (el) { var c = el.closest(".card") || el; c.scrollIntoView({ block: "start", behavior: (function () { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; } catch (e) { return "smooth"; } })() }); } }
 
+  
+
+  var FC = { m: {}, loaded: false, dirty: false, saveT: 0, st: { computed: 0, hits: 0, fastMs: 0, paints: 0, early: 0 } }, FCV = "117.1", FCLS = "horn-rv117", fullT = 0, warmT = 0;
+  function fcSig() { var E = window.__eng110; return FCV + "|" + (E ? E.VER + "|" + E.nsig() : "0"); }
+  function fcLoad() { if (FC.loaded) return; FC.loaded = true; try { var j = JSON.parse(localStorage.getItem(FCLS) || "null"); if (j && j.s === fcSig() && j.c) FC.m = j.c; } catch (e) {} }
+  function fcSave() { FC.dirty = false; try { var ks = Object.keys(FC.m); if (ks.length > 300) ks.slice(0, ks.length - 300).forEach(function (k) { delete FC.m[k]; }); localStorage.setItem(FCLS, JSON.stringify({ s: fcSig(), c: FC.m })); } catch (e) {} }
+  function aKey(a) {
+    var ns = a.notes || [], f = ns[0], z = ns[ns.length - 1], id = a.take ? "T:" + (a.take.id || a.take.fileName || "") + (a.rep != null ? ":r" + a.rep : "") : "D:" + ((a.drill && a.drill.id) || "") + ":" + a.n;
+    return id + "|" + ns.length + "|" + (f ? f[1] : "") + "|" + (z ? z[1] : "") + "|" + fcSig();
+  }
+  function aCounts(a) { 
+    fcLoad(); var k = aKey(a), e = FC.m[k]; if (e) { FC.st.hits++; return e; }
+    var c = window.__noteGrid.takeCounts(a.notes); e = { n: c.n, z: c.z }; FC.m[k] = e; FC.st.computed++; FC.dirty = true;
+    clearTimeout(FC.saveT); FC.saveT = setTimeout(fcSave, 800); return e;
+  }
+  function aWhen(a) { 
+    if (a.take) { var t = a.take; return String(t.createdAt || ((t.recDate || "") + "T" + (t.recTime || "00:00"))); }
+    var q = a.drill && a.drill.tries && a.drill.tries[a.n - 1]; return String((q && q.at) || (a.drill && a.drill.at) || "");
+  }
+  function hhmm(iso) { var d = iso ? new Date(iso) : null; if (!d || isNaN(d)) return ""; var z = function (k) { return (k < 10 ? "0" : "") + k; }; return z(d.getHours()) + ":" + z(d.getMinutes()); }
+  function todayAttempts() { var G = window.__prog, day = today(); if (!G) return []; return G.attempts(function (a) { return a.date && String(a.date).slice(0, 10) === day && a.notes && a.notes.length; }).sort(function (x, y) { var p = aWhen(x), q = aWhen(y); return p < q ? 1 : p > q ? -1 : 0; }); }
+  function todayCard() { 
+    if (R.days !== 1 || !window.__noteGrid || !window.__noteGrid.takeCounts) return null;
+    var L = todayAttempts(); if (!L.length) return null;
+    var tot = [0, 0, 0], n = 0, nr = 0, rep = 0, rows = "";
+    L.forEach(function (a, i) {
+      var c = aCounts(a), cn = c.n; if (!cn) return;
+      if (a.try1) { nr++; n += cn; for (var k = 0; k < 3; k++) tot[k] += c.z[k]; } else rep++;
+      if (i < 6) rows += '<li data-n="' + cn + '" data-z="' + c.z.join(",") + '"' + (a.try1 ? "" : ' class="rt-rep"') + '><span class="rt-t">' + esc(hhmm(aWhen(a))) + '</span><span class="rt-n">' + esc(a.title || "Recording") + '</span><span class="rt-v">' + window.__stat.pl(cn, "note", "notes") + ", " + Math.round(c.z[0] / cn * 100) + "% in tune" + (a.try1 ? "" : ", repeat try") + "</span></li>";
+    });
+    var pc = function (v) { return n ? Math.round(v / n * 100) + "%" : "0%"; };
+    var sum = n ? '<p class="rt-sum" data-n="' + n + '" data-z="' + tot.join(",") + '" data-recs="' + nr + '"><b>' + window.__stat.pl(nr, "recording", "recordings") + ", " + window.__stat.pl(n, "note", "notes") + '</b><span>In tune ' + pc(tot[0]) + "</span><span>A bit off " + pc(tot[1]) + "</span><span>Needs work " + pc(tot[2]) + "</span></p>" : '<p class="meta">Repeat tries only so far.</p>';
+    var el2 = document.createElement("div"); el2.className = "card rv rv-today"; el2.id = "rvToday";
+    el2.innerHTML = "<h3>Today</h3>" + sum + '<ul class="rt-l">' + rows + "</ul>" + (L.length > 6 ? '<p class="meta">' + (L.length - 6) + " earlier today</p>" : "") + (rep && n ? '<p class="meta">Repeat tries are listed, not counted.</p>' : "");
+    return el2;
+  }
+  function todayCss() {
+    if (document.getElementById("rtCss")) return; var s = document.createElement("style"); s.id = "rtCss";
+    s.textContent = ".rv-today h3{margin-bottom:6px}.rt-sum{display:flex;flex-wrap:wrap;gap:2px 12px;margin:0 0 8px;font-size:0.9375rem}.rt-sum b{font-weight:600}.rt-sum span{color:var(--text2)}" +
+      ".rt-l{list-style:none;margin:0;padding:0}.rt-l li{display:grid;grid-template-columns:3.2em 1fr;gap:0 8px;padding:8px 0;border-top:1px solid var(--line)}.rt-t{color:var(--text2);font-variant-numeric:tabular-nums}.rt-n{font-size:0.9375rem;overflow-wrap:anywhere}" +
+      ".rt-v{grid-column:2;font-size:0.8125rem;color:var(--text2)}.rt-rep .rt-n{color:var(--text2)}.rv-upd{margin:0 0 8px;font-size:0.8125rem;color:var(--text2)}";
+    document.head.appendChild(s);
+  }
+  function engineBusy() { 
+    var so = document.getElementById("standOut"); if (so && so.getAttribute("aria-busy") === "true") return true;
+    var E = window.__eng110, PC = window.__patCard; if (!E || !PC || !PC.pool) return false;
+    try { return PC.pool().some(function (t) { return t && t.notes && t.notes.length >= 30 && !t.dupOf && E.groupOf(t) !== "wagner_tuba" && !E.cached(t); }); } catch (e) { return false; }
+  }
+  function updLine(host) {
+    var u = host.querySelector("#rvUpdating"), busy = engineBusy();
+    if (busy && !u) { u = document.createElement("p"); u.id = "rvUpdating"; u.className = "meta rv-upd"; u.setAttribute("role", "status"); u.textContent = "Updating all recordings"; var t = host.querySelector("#rvToday") || host.querySelector(".ng-host"); if (t && t.parentNode === host) host.insertBefore(u, t); else host.insertBefore(u, host.firstChild); }
+    else if (!busy && u) u.remove();
+  }
+  window.__rvUpdating = function () { var h = $("#reviewBody"); if (h) updLine(h); };
+  function putToday(host) {
+    todayCss(); var old = host.querySelector("#rvToday"), c = todayCard();
+    if (old && !c) old.remove(); else if (c) { if (old) old.replaceWith(c); else { var ng = host.querySelector(".ng-host"); if (ng && ng.parentNode === host) host.insertBefore(c, ng); else host.insertBefore(c, host.firstChild); } }
+  }
+  function warm() { 
+    var E = window.__eng110, PC = window.__patCard; if (!E || !E.one || !PC || !PC.pool) return;
+    var ids = {}; todayAttempts().forEach(function (a) { ids[a.take ? a.take.id : "D:" + (a.drill && a.drill.id) + ":" + (a.n - 1)] = 1; });
+    try { PC.pool().forEach(function (t) { if (t && ids[t.id] && t.notes && t.notes.length >= 30 && !E.cached(t)) E.one(t); }); } catch (e) {}
+  }
+  function fastPaint() { 
+    var host = $("#reviewBody"); if (!host || !host.querySelector(".ng-host") || !window.__noteGrid || !window.__noteGrid.refresh) return false;
+    var t0 = performance.now(); putToday(host); window.__noteGrid.refresh(); updLine(host); FC.st.fastMs = Math.round(performance.now() - t0); FC.st.paints++;
+    clearTimeout(warmT); warmT = setTimeout(warm, 0); return true;
+  }
+  function earlyPaint(host) { 
+    if (!window.__prog || !window.__noteGrid || !window.__noteGrid.mountFast) return false;
+    var t0 = performance.now(); host.innerHTML = (window.__prog.painToday && window.__prog.painToday() ? "" : bodyCard()); try { wireBody(host); } catch (e) {}
+    window.__noteGrid.mountFast(host); putToday(host); updLine(host); FC.st.fastMs = Math.round(performance.now() - t0); FC.st.early++;
+    clearTimeout(warmT); warmT = setTimeout(warm, 0); return true;
+  }
+  function syncChips() { var box = $("#rvRange"); if (!box) return; Array.prototype.forEach.call(box.children, function (b, i) { var on = [1, 7, 30, 90, 0][i] === R.days; b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-checked", String(on)); }); }
+  window.__rv117 = { stats: function () { var E = window.__eng110; return { fast: { computed: FC.st.computed, hits: FC.st.hits, fastMs: FC.st.fastMs, paints: FC.st.paints, early: FC.st.early }, engine: E && E.stat ? E.stat() : null, sig: fcSig() }; }, resetStats: function () { FC.st.computed = 0; FC.st.hits = 0; }, flush: fcSave, counts: function () { return todayAttempts().map(function (a) { var c = aCounts(a); return { title: a.title, try1: !!a.try1, n: c.n, z: c.z.slice() }; }); }, memClear: function () { FC.m = {}; FC.loaded = true; } };
+
    
   var CHEV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
   function more(d) {
@@ -25503,14 +25602,17 @@ function __eng110Factory(G) {
   try { if (window.__refCmp) window.__refCmp.mount(host); } catch (e) {} try { if (window.__noteGrid) window.__noteGrid.mount(host); } catch (e) {} try { if (window.__progCards) window.__progCards.mount(host); } catch (e) {} }
   function render() {
     var host = $("#reviewBody"); if (!host) return;
+    if (window.__reviewToday) { window.__reviewToday = false; R.days = 1; syncChips(); } 
+    if (!host.querySelector(".ng-host")) { var ep = false; try { ep = earlyPaint(host); } catch (e) { ep = false; } if (ep) { clearTimeout(fullT); fullT = setTimeout(render, 0); return; } }
     var d = data();
-    if (!d || !d.all.length) { host.innerHTML = bodyCard() + __L('<div class="card rv"><h3>지금 고칠 것</h3><p class="rv-ex">이 기간 녹음 없음.</p></div>','<div class="card rv"><h3>What to fix now</h3><p class="rv-ex">No recordings in this period.</p></div>') + (window.__prog ? calendar() : ""); refMount(host); try { wireBody(host); } catch (e) {} return; }
+    if (!d || !d.all.length) { host.innerHTML = bodyCard() + __L('<div class="card rv"><h3>지금 고칠 것</h3><p class="rv-ex">이 기간 녹음 없음.</p></div>','<div class="card rv"><h3>What to fix now</h3><p class="rv-ex">No recordings in this period.</p></div>') + (window.__prog ? calendar() : ""); refMount(host); try { putToday(host); updLine(host); } catch (e) {} try { wireBody(host); } catch (e) {} return; }
     var top = "";
     try { top = conclusions(d); } catch (e) { top = __L('<div class="card rv"><h3>지금 고칠 것</h3><p class="rv-ex">결론 생성 실패: ','<div class="card rv"><h3>What to fix now</h3><p class="rv-ex">Couldn\'t build the summary: ') + esc(e && e.message || e) + "</p></div>"; }
     stopRec();
     var mc = ""; try { mc = memoCard(); } catch (e) { mc = ""; }
     host.innerHTML = (window.__prog && window.__prog.painToday && window.__prog.painToday() ? "" : bodyCard()) + top + mc + more(d);
     refMount(host);
+    try { putToday(host); updLine(host); } catch (e) {} 
     try { wireConclusions(host); } catch (e) {}
     try { wireBody(host); } catch (e) {}
     var dt = host.querySelector("#rvMore"); if (dt) dt.addEventListener("toggle", function () { R.open = dt.open; });
@@ -25540,7 +25642,11 @@ function __eng110Factory(G) {
     R.mode = mode || "all"; R.open = true; if (m) R.tm = m; if (a && window.__trend && window.__trend.AXES.some(function (x) { return x.k === a; })) R.ta = a;
     render(); if (R.mode === "trend") setTimeout(function () { jump(m ? ".rv-mc" : "#rvMore"); }, 0);
   };
-  if (window.__prog) window.__prog.on(function () { if (!$("#v-review").classList.contains("hide")) render(); });
+  if (window.__prog) window.__prog.on(function () { 
+    if ($("#v-review").classList.contains("hide")) return;
+    var fast = false; try { fast = fastPaint(); } catch (e) { fast = false; }
+    clearTimeout(fullT); fullT = setTimeout(render, fast ? 60 : 0);
+  });
 })();
 
 </script>
@@ -26612,7 +26718,11 @@ window.HornRefBench = {"date": "2026-11-01", "method": __L("녹음마다 그 녹
     });
   }
   window.__bench = { now: benchNow, card: benchCard, md: md };
-  window.__noteGrid = { mount: function (host) { style(); var box = document.createElement("div"); box.className = "ng-host"; var f0 = host.firstElementChild;  
+   
+  function takeCounts(notes) { var z = [0, 0, 0], n = 0; (notes || []).forEach(function (x) { if (x && x[0] != null && x[1] != null) { n++; z[zone(x[1])]++; } }); return { n: n, z: z }; }
+  function refreshNow() { var h = document.querySelector("#reviewBody .ng-host"); if (!h) return false; render(h); return true; }
+  function mountFast(host) { style(); var box = document.createElement("div"); box.className = "ng-host"; var f0 = host.firstElementChild; if (f0 && f0.classList.contains("rv-body1")) f0.after(box); else host.insertBefore(box, host.firstChild); render(box); }
+  window.__noteGrid = { takeCounts: takeCounts, refresh: refreshNow, mountFast: mountFast, G1: G1, G2: G2, mount: function (host) { style(); var box = document.createElement("div"); box.className = "ng-host"; var f0 = host.firstElementChild;  
     if (f0 && f0.classList.contains("rv-body1")) f0.after(box); else host.insertBefore(box, host.firstChild);
     render(box); var bx = document.createElement("div"); bx.className = "bench-host"; var mr = host.querySelector(".rv-more"); if (mr) host.insertBefore(bx, mr); else host.appendChild(bx); try { benchCard(bx); } catch (e) {} }, collect: collect, S: S };
 })();
