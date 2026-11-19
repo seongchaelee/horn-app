@@ -1,5 +1,5 @@
 /* Horn service worker: the page is always network first (no HTTP cache, 3 s limit), cache only when offline */
-const C = "horn-v144";
+const C = "horn-v146";
 const FILES = ["./index.html", "./manifest.json", "./icon-180.png", "./icon-512.png"]; // m122C: no separate "./" entry (key() maps navigations to ./index.html), so the page is cached once, not twice
 const LIMIT = 5000;
 self.addEventListener("install", e => {
